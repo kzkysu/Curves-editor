@@ -49,7 +49,11 @@ class MainWindow(Gtk.Window):
 
         selectPointButton = Gtk.ToggleButton(label="Delete point")
         selectPointButton.connect("toggled", self.on_delete_point_button_toggled)
-        editorGrid.attach(selectPointButton,1,1,1,1)
+        editorGrid.attach(selectPointButton,2,1,1,1)
+
+        movePointButton = Gtk.Button(label="Move point")
+        movePointButton.connect("clicked", lambda self: print("Coming soon"))
+        editorGrid.attach(movePointButton,1,1,1,1)
         
         mainHBox = Gtk.HBox()
         mainVBox.pack_end(mainHBox,True,True,0)
@@ -84,7 +88,7 @@ class MainWindow(Gtk.Window):
 
     def add_curve(self,event):
         newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
-            self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)))
+            self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)),'polygonal_chain')
         self.activeCurve = newCurve
         newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter)
         newCurveWidget.get_radioButton().set_active(True)
@@ -107,7 +111,7 @@ class MainWindow(Gtk.Window):
                 self.activeMenuButton.set_active(False)
             self.activeMenuButton = widget
         else:
-            self.fig.canvas.mpl_disconnect(self.select_curve)
+            self.fig.canvas.mpl_disconnect(self.select_curve_active)
  
     def on_add_point_button_toggled(self,widget):
         if widget.get_active() == True:
