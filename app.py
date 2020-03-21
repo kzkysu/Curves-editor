@@ -170,7 +170,7 @@ class MainWindow(Gtk.Window):
             self.canvas.draw_idle()
 
     def add_point(self,event):
-        if self.activeCurve != None:
+        if self.activeCurve != None and event.inaxes != None:
             self.activeCurve.add_point(event.xdata,event.ydata)
             self.canvas.draw_idle()
 
