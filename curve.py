@@ -51,7 +51,7 @@ class Curve:
         pointer = -1
         xs = self.points['xs']
         ys = self.points['ys']
-        for i in range(self.numberOfPoints):
+        for i in range(self.numberOfPoints + 1):
             if (x-xs[i])**2 + (y-ys[i])**2 < minDistance:
                 minDistance = (x-xs[i])**2 + (y-ys[i])**2
                 pointer = i
