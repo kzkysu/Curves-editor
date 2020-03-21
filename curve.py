@@ -37,9 +37,10 @@ class Curve:
         self.activePoint = None
 
     def move_point(self,x,y):
-        self.points['xs'][self.activePoint] = x
-        self.points['ys'][self.activePoint] = y
-        self.update_plots()
+        if self.activePoint != None:
+            self.points['xs'][self.activePoint] = x
+            self.points['ys'][self.activePoint] = y
+            self.update_plots()
 
     def update_plots(self):
         self.pointsPlot[0].set_data(self.points['xs'],self.points['ys'])
