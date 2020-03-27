@@ -34,19 +34,29 @@ class MainWindow(Gtk.Window):
         self.add(mainVBox)
 
         editorGrid = Gtk.Grid()
+        editorGrid.set_row_spacing(3)
+        editorGrid.set_column_spacing(5)
         mainVBox.pack_start(editorGrid,False,False,0)
-
-        addCurveButton = Gtk.Button(label="Add curve")
-        addCurveButton.connect("clicked", self.add_curve)
-        editorGrid.add(addCurveButton)
 
         selectCurveButton = Gtk.ToggleButton(label="Select curve")
         selectCurveButton.connect("toggled", self.on_select_curve_button_toggled)
-        editorGrid.attach(selectCurveButton,1,0,1,1)
+        editorGrid.add(selectCurveButton)
+
+        addCurveButton = Gtk.Button(label="Add curve")
+        addCurveButton.connect("clicked", self.add_curve)
+        editorGrid.attach(addCurveButton,1,0,1,1)
+
+        deleteCurveButton = Gtk.Button(label="Delete active curve")
+        deleteCurveButton.connect("clicked", self.delete_curve)
+        editorGrid.attach(deleteCurveButton,2,0,1,1)
+
+        moveCurveButton = Gtk.ToggleButton(label = "Move curve")
+        moveCurveButton.connect("toggled", self.on_move_curve_button_toggled)
+        editorGrid.add(moveCurveButton)
 
         addPointButton = Gtk.ToggleButton(label="Add point")
         addPointButton.connect("toggled", self.on_add_point_button_toggled)
-        editorGrid.attach(addPointButton,0,1,1,1)
+        editorGrid.attach(addPointButton,1,1,1,1)
 
         selectPointButton = Gtk.ToggleButton(label="Delete point")
         selectPointButton.connect("toggled", self.on_delete_point_button_toggled)
@@ -54,7 +64,7 @@ class MainWindow(Gtk.Window):
 
         movePointButton = Gtk.ToggleButton(label="Move point")
         movePointButton.connect("toggled", self.on_move_point_button_toggled)
-        editorGrid.attach(movePointButton,1,1,1,1)
+        editorGrid.attach(movePointButton,3,1,1,1)
         
         mainHBox = Gtk.HBox()
         mainVBox.pack_end(mainHBox,True,True,0)
@@ -87,22 +97,6 @@ class MainWindow(Gtk.Window):
         self.ax = self.fig.add_subplot()
         plt.axis([0,300,0,100],'scaled')
 
-    def add_curve(self,event):
-        newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
-            self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)),'polygonal_chain')
-        newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter)
-        newCurveWidget.get_radioButton().set_active(True)
-        newCurveWidget.get_radioButton().connect("toggled",self.set_active_curve)
-
-        self.activeCurve = newCurve
-        self.activeCurveWidget = newCurveWidget
-
-        self.curvesVBox.pack_start(newCurveWidget,True,False,0)
-        self.curves["points" + str(self.curvesCounter)] = newCurveWidget
-        self.curves["line" + str(self.curvesCounter)] = newCurveWidget
-        self.curvesCounter += 1
-        self.show_all()
-
     def set_active_curve(self,widget):
         if widget.get_active():
             self.activeCurveWidget = widget.get_parent()
@@ -133,8 +127,18 @@ class MainWindow(Gtk.Window):
                 self.activeMenuButton.set_active(False)
             self.activeMenuButton = widget
         else:
-            self.fig.canvas.mpl_disconnect(self.delete_point_active)
-        
+            self.fig.canvas.mpl_disconnect(self.delete_point_active)  
+
+    def on_move_curve_button_toggled(self,widget):
+        if widget.get_active() == True:
+            self.pick_curve_active = self.fig.canvas.mpl_connect('pick_event', self.pick_curve)
+            self.drop_curve_active = self.fig.canvas.mpl_connect('button_release_event', self.drop_curve)
+            if self.activeMenuButton != None and self.activeMenuButton != widget:
+                self.activeMenuButton.set_active(False)
+            self.activeMenuButton = widget
+        else:
+            self.fig.canvas.mpl_disconnect(self.pick_curve_active)
+            self.fig.canvas.mpl_disconnect(self.drop_curve_active)
 
     def on_move_point_button_toggled(self,widget):
         if widget.get_active() == True:
@@ -148,14 +152,57 @@ class MainWindow(Gtk.Window):
             self.fig.canvas.mpl_disconnect(self.select_point_active)
             self.fig.canvas.mpl_disconnect(self.pick_point_active)
             self.fig.canvas.mpl_disconnect(self.drop_point_active)
-    
 
+    def add_curve(self,event):
+        newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
+            self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)),'polygonal_chain')
+        newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter)
+        newCurveWidget.get_radioButton().set_active(True)
+        newCurveWidget.get_radioButton().connect("toggled",self.set_active_curve)
+
+        self.activeCurve = newCurve
+        self.activeCurveWidget = newCurveWidget
+
+        self.curvesVBox.pack_start(newCurveWidget,True,False,0)
+        self.curves["points" + str(self.curvesCounter)] = newCurveWidget
+        self.curves["line" + str(self.curvesCounter)] = newCurveWidget
+        self.curvesCounter += 1
+        self.show_all()
+    
     def select_curve(self,event):
         lineName = event.artist.get_label()
         if 'line' in lineName:
             self.activeCurveWidget = self.curves[lineName]
             self.activeCurveWidget.get_radioButton().set_active(True)
             self.activeCurve = self.activeCurveWidget.get_curve()
+
+    def delete_curve(self,event):
+        if self.activeCurve != None:
+            self.curves[self.activeCurve.get_points_label()] = None
+            self.activeCurve.delete_curve()
+            self.activeCurveWidget.destroy()
+            self.activeCurve = None
+            self.activeCurveWidget = None
+
+            self.canvas.draw_idle()
+
+    def pick_curve(self,event):
+        lineName = event.artist.get_label()
+        if self.curves[lineName] == self.activeCurveWidget:
+            self.drag_curve_active = self.fig.canvas.mpl_connect('motion_notify_event', self.drag_curve)
+            self.mouseX = event.mouseevent.xdata
+            self.mouseY = event.mouseevent.ydata
+
+    def drop_curve(self,event):
+        if self.drag_curve_active != None:
+            self.fig.canvas.mpl_disconnect(self.drag_curve_active)
+    
+    def drag_curve(self,event):
+        if event.inaxes != None:
+            self.activeCurve.move_curve(event.xdata-self.mouseX,event.ydata-self.mouseY)
+            self.mouseX = event.xdata
+            self.mouseY = event.ydata
+            self.canvas.draw_idle()
 
     def select_point(self,event):
         lineName = event.artist.get_label()
