@@ -8,12 +8,10 @@ from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as Figur
 
 from matplotlib import axes
 from matplotlib.figure import Figure
-from numpy import arange, pi, random, linspace
-from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 
 from curve import Curve
-from curve_widget import CurveWidget
+from curves_editor_widget import CurveWidget,GetAngleWidget
 
 
 class MainWindow(Gtk.Window):
@@ -33,38 +31,46 @@ class MainWindow(Gtk.Window):
         mainVBox = Gtk.VBox()
         self.add(mainVBox)
 
-        editorGrid = Gtk.Grid()
-        editorGrid.set_row_spacing(3)
-        editorGrid.set_column_spacing(5)
-        mainVBox.pack_start(editorGrid,False,False,0)
+        self.editorGrid = Gtk.Grid()
+        self.editorGrid.set_row_spacing(3)
+        self.editorGrid.set_column_spacing(5)
+        mainVBox.pack_start(self.editorGrid,False,False,0)
 
         selectCurveButton = Gtk.ToggleButton(label="Select curve")
         selectCurveButton.connect("toggled", self.on_select_curve_button_toggled)
-        editorGrid.add(selectCurveButton)
+        self.editorGrid.add(selectCurveButton)
 
         addCurveButton = Gtk.Button(label="Add curve")
         addCurveButton.connect("clicked", self.add_curve)
-        editorGrid.attach(addCurveButton,1,0,1,1)
+        self.editorGrid.attach(addCurveButton,1,0,1,1)
 
         deleteCurveButton = Gtk.Button(label="Delete active curve")
         deleteCurveButton.connect("clicked", self.delete_curve)
-        editorGrid.attach(deleteCurveButton,2,0,1,1)
+        self.editorGrid.attach(deleteCurveButton,2,0,1,1)
 
         moveCurveButton = Gtk.ToggleButton(label = "Move curve")
         moveCurveButton.connect("toggled", self.on_move_curve_button_toggled)
-        editorGrid.add(moveCurveButton)
+        self.editorGrid.attach(moveCurveButton,3,0,1,1)
+
+        resizeCurveButton = Gtk.ToggleButton(label = "Resize curve")
+        resizeCurveButton.connect("toggled", self.on_resize_curve_button_toggled)
+        self.editorGrid.attach(resizeCurveButton,4,0,1,1)
+
+        rotateCurveButton = Gtk.ToggleButton(label = "Rotate curve")
+        rotateCurveButton.connect("toggled", self.on_rotate_curve_button_toggled)
+        self.editorGrid.attach(rotateCurveButton,5,0,1,1)
 
         addPointButton = Gtk.ToggleButton(label="Add point")
         addPointButton.connect("toggled", self.on_add_point_button_toggled)
-        editorGrid.attach(addPointButton,1,1,1,1)
+        self.editorGrid.attach(addPointButton,1,1,1,1)
 
         selectPointButton = Gtk.ToggleButton(label="Delete point")
         selectPointButton.connect("toggled", self.on_delete_point_button_toggled)
-        editorGrid.attach(selectPointButton,2,1,1,1)
+        self.editorGrid.attach(selectPointButton,2,1,1,1)
 
         movePointButton = Gtk.ToggleButton(label="Move point")
         movePointButton.connect("toggled", self.on_move_point_button_toggled)
-        editorGrid.attach(movePointButton,3,1,1,1)
+        self.editorGrid.attach(movePointButton,3,1,1,1)
         
         mainHBox = Gtk.HBox()
         mainVBox.pack_end(mainHBox,True,True,0)
@@ -140,6 +146,29 @@ class MainWindow(Gtk.Window):
             self.fig.canvas.mpl_disconnect(self.pick_curve_active)
             self.fig.canvas.mpl_disconnect(self.drop_curve_active)
 
+    def on_resize_curve_button_toggled(self,widget):
+        if widget.get_active() == True:
+            if self.activeMenuButton != None and self.activeMenuButton != widget:
+                self.activeMenuButton.set_active(False)
+            self.activeMenuButton = widget
+        else:
+            pass
+
+    def on_rotate_curve_button_toggled(self,widget):
+        if widget.get_active() == True:
+            if self.activeMenuButton != None and self.activeMenuButton != widget:
+                self.activeMenuButton.set_active(False)
+            self.activeMenuButton = widget
+
+            self.getAngleWidget = GetAngleWidget()
+            self.getAngleWidget.get_applyButton().connect("clicked",self.rotate_curve)
+            self.getAngleWidget.get_entry().connect("activate",self.rotate_curve)
+            self.editorGrid.add(self.getAngleWidget)
+            self.show_all()
+        else:
+            self.getAngleWidget.destroy()
+            self.show_all()
+
     def on_move_point_button_toggled(self,widget):
         if widget.get_active() == True:
             self.select_point_active = self.fig.canvas.mpl_connect('pick_event', self.select_point)
@@ -195,6 +224,8 @@ class MainWindow(Gtk.Window):
 
     def drop_curve(self,event):
         if self.drag_curve_active != None:
+            self.activeCurve.move_curve(event.xdata-self.mouseX,event.ydata-self.mouseY)
+            self.canvas.draw_idle()
             self.fig.canvas.mpl_disconnect(self.drag_curve_active)
     
     def drag_curve(self,event):
@@ -203,6 +234,18 @@ class MainWindow(Gtk.Window):
             self.mouseX = event.xdata
             self.mouseY = event.ydata
             self.canvas.draw_idle()
+
+    def rotate_curve(self,event):
+        angle = self.getAngleWidget.get_entry().get_text()
+        try:
+            if self.activeCurve != None and int(angle) < 360 and int(angle) > -360:
+                angle = int(angle)
+                if angle < 0:
+                    angle += 360
+                self.activeCurve.rotate_curve(angle)
+            self.canvas.draw_idle()
+        except:
+            pass
 
     def select_point(self,event):
         lineName = event.artist.get_label()

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numerical_algorithm as num
+import math as m
 
 class Curve:
     counter = 0
@@ -46,6 +47,8 @@ class Curve:
             self.update_plots()
 
     def move_curve(self,x,y):
+        x /= 2
+        y /= 2
         for i in range(self.numberOfPoints):
             self.points['xs'][i] += x
         for i in range(self.numberOfPoints):
@@ -58,6 +61,25 @@ class Curve:
             linex[i] += x
         for i in range(self.numberOfPoints):
             liney[i] += y
+
+        self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
+        self.linePlot.set_data(linex,liney)
+
+    def rotate_points(self,x,y,angle):
+        return x*m.cos(angle) - y*m.sin(angle), x*m.sin(angle) + y*m.cos(angle)
+
+
+    def rotate_curve(self,angle):
+        angle = m.radians(angle)
+
+        linex = self.linePlot.get_xdata()
+        liney = self.linePlot.get_ydata()
+
+        for i in range(self.numberOfPoints):
+            self.points['xs'][i],self.points['ys'][i]  = self.rotate_points(self.points['xs'][i],self.points['ys'][i],angle)
+
+        for i in range(self.numberOfPoints):
+            linex[i], liney[i] = self.rotate_points(linex[i],liney[i],angle)
 
         self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
         self.linePlot.set_data(linex,liney)
