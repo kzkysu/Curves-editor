@@ -65,21 +65,22 @@ class Curve:
         self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
         self.linePlot.set_data(linex,liney)
 
-    def rotate_points(self,x,y,angle):
-        return x*m.cos(angle) - y*m.sin(angle), x*m.sin(angle) + y*m.cos(angle)
+    def rotate_points(self,x,y,angle,s,t):
+        return (x-s)*m.cos(angle) - (y-t)*m.sin(angle) + s, (x-s)*m.sin(angle) + (y-t)*m.cos(angle) + t
 
 
-    def rotate_curve(self,angle):
+    def rotate_curve(self,angle,s,t):
         angle = m.radians(angle)
+        angle /= 2
 
         linex = self.linePlot.get_xdata()
         liney = self.linePlot.get_ydata()
 
         for i in range(self.numberOfPoints):
-            self.points['xs'][i],self.points['ys'][i]  = self.rotate_points(self.points['xs'][i],self.points['ys'][i],angle)
+            self.points['xs'][i],self.points['ys'][i]  = self.rotate_points(self.points['xs'][i],self.points['ys'][i],angle,s,t)
 
         for i in range(self.numberOfPoints):
-            linex[i], liney[i] = self.rotate_points(linex[i],liney[i],angle)
+            linex[i], liney[i] = self.rotate_points(linex[i],liney[i],angle,s,t)
 
         self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
         self.linePlot.set_data(linex,liney)

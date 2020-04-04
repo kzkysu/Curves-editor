@@ -27,6 +27,7 @@ class MainWindow(Gtk.Window):
         self.activeCurve = None
         self.activeCurveWidget = None
         self.activeMenuButton = None
+        self.pointOfRotation = None
 
         mainVBox = Gtk.VBox()
         self.add(mainVBox)
@@ -101,7 +102,8 @@ class MainWindow(Gtk.Window):
     def show_plot(self):
         self.fig = plt.figure(figsize=[9, 6], dpi=100,)
         self.ax = self.fig.add_subplot()
-        plt.axis([0,300,0,100],'scaled')
+        plt.axis([0,300,0,200],'scaled')
+
 
     def set_active_curve(self,widget):
         if widget.get_active():
@@ -116,24 +118,6 @@ class MainWindow(Gtk.Window):
             self.activeMenuButton = widget
         else:
             self.fig.canvas.mpl_disconnect(self.select_curve_active)
- 
-    def on_add_point_button_toggled(self,widget):
-        if widget.get_active() == True:
-            self.add_point_active = self.fig.canvas.mpl_connect('button_press_event', self.add_point)
-            if self.activeMenuButton != None and self.activeMenuButton != widget:
-                self.activeMenuButton.set_active(False)
-            self.activeMenuButton = widget
-        else:
-            self.fig.canvas.mpl_disconnect(self.add_point_active)
-    
-    def on_delete_point_button_toggled(self,widget):
-        if widget.get_active() == True:
-            self.delete_point_active = self.fig.canvas.mpl_connect('pick_event', self.delete_point)
-            if self.activeMenuButton != None and self.activeMenuButton != widget:
-                self.activeMenuButton.set_active(False)
-            self.activeMenuButton = widget
-        else:
-            self.fig.canvas.mpl_disconnect(self.delete_point_active)  
 
     def on_move_curve_button_toggled(self,widget):
         if widget.get_active() == True:
@@ -160,14 +144,41 @@ class MainWindow(Gtk.Window):
                 self.activeMenuButton.set_active(False)
             self.activeMenuButton = widget
 
-            self.getAngleWidget = GetAngleWidget()
-            self.getAngleWidget.get_applyButton().connect("clicked",self.rotate_curve)
-            self.getAngleWidget.get_entry().connect("activate",self.rotate_curve)
+            self.getAngleWidget = GetAngleWidget(self.rotate_curve,self.on_add_point_of_rotation_button_toggled)
             self.editorGrid.add(self.getAngleWidget)
             self.show_all()
         else:
+            if(self.pointOfRotation != None): self.fig.canvas.mpl_disconnect(self.add_point_of_rotation_active)
+            self.delete_point_of_rotation()
             self.getAngleWidget.destroy()
             self.show_all()
+
+    def on_add_point_of_rotation_button_toggled(self,widget):
+        if widget.get_active() == True:
+            self.add_point_of_rotation_active = self.fig.canvas.mpl_connect('button_press_event', self.add_point_of_rotation)
+        else:
+            self.fig.canvas.mpl_disconnect(self.add_point_of_rotation_active)
+            self.delete_point_of_rotation()
+            self.canvas.draw_idle()
+ 
+    def on_add_point_button_toggled(self,widget):
+        if widget.get_active() == True:
+            self.add_point_active = self.fig.canvas.mpl_connect('button_press_event', self.add_point)
+            if self.activeMenuButton != None and self.activeMenuButton != widget:
+                self.activeMenuButton.set_active(False)
+            self.activeMenuButton = widget
+        else:
+            self.fig.canvas.mpl_disconnect(self.add_point_active)
+    
+    def on_delete_point_button_toggled(self,widget):
+        if widget.get_active() == True:
+            self.delete_point_active = self.fig.canvas.mpl_connect('pick_event', self.delete_point)
+            if self.activeMenuButton != None and self.activeMenuButton != widget:
+                self.activeMenuButton.set_active(False)
+            self.activeMenuButton = widget
+        else:
+            self.fig.canvas.mpl_disconnect(self.delete_point_active)  
+            
 
     def on_move_point_button_toggled(self,widget):
         if widget.get_active() == True:
@@ -185,9 +196,7 @@ class MainWindow(Gtk.Window):
     def add_curve(self,event):
         newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
             self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)),'polygonal_chain')
-        newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter)
-        newCurveWidget.get_radioButton().set_active(True)
-        newCurveWidget.get_radioButton().connect("toggled",self.set_active_curve)
+        newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter,self.set_active_curve)
 
         self.activeCurve = newCurve
         self.activeCurveWidget = newCurveWidget
@@ -237,15 +246,33 @@ class MainWindow(Gtk.Window):
 
     def rotate_curve(self,event):
         angle = self.getAngleWidget.get_entry().get_text()
+        if self.pointOfRotation != None:
+            s = self.pointOfRotation[0].get_xdata()[0]
+            t = self.pointOfRotation[0].get_ydata()[0]
+        else:
+            s,t = 0,0
         try:
             if self.activeCurve != None and int(angle) < 360 and int(angle) > -360:
                 angle = int(angle)
                 if angle < 0:
                     angle += 360
-                self.activeCurve.rotate_curve(angle)
+            self.activeCurve.rotate_curve(angle,s,t)
             self.canvas.draw_idle()
         except:
             pass
+
+    def add_point_of_rotation(self,event):
+        self.delete_point_of_rotation()
+        self.pointOfRotation = self.ax.plot([event.xdata],[event.ydata],'ko')
+        self.canvas.draw_idle()
+
+
+    def delete_point_of_rotation(self):
+        if( self.pointOfRotation != None ):
+            self.pointOfRotation[0].remove()
+            del self.pointOfRotation
+            self.pointOfRotation = None
+            self.canvas.draw_idle()
 
     def select_point(self,event):
         lineName = event.artist.get_label()
