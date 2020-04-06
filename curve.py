@@ -6,6 +6,7 @@ class Curve:
     counter = 0
     def __init__(self,pointsPlot,linePlot,curveType):
         self.name = "Curve " + str(Curve.counter)
+        self.accurancy = 1000
         Curve.counter += 1
         self.linePlot = linePlot[0]
         self.pointsPlot = pointsPlot[0]
@@ -13,9 +14,16 @@ class Curve:
         self.curveType = curveType
         self.numberOfPoints = 0
         self.activePoint = None
+        self.funcY = None
 
     def get_points_label(self):
         return self.pointsPlot.get_label()
+
+    def update_plots(self):
+        self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
+        self.funcY = num.functionDict[self.curveType](self.points['xs'],self.points['ys'])
+        lxs,lys = self.funcY(self.accurancy)
+        self.linePlot.set_data(lxs,lys)
 
     def add_point(self,x,y):
         self.numberOfPoints += 1
@@ -47,8 +55,6 @@ class Curve:
             self.update_plots()
 
     def move_curve(self,x,y):
-        x /= 2
-        y /= 2
         for i in range(self.numberOfPoints):
             self.points['xs'][i] += x
         for i in range(self.numberOfPoints):
@@ -57,10 +63,30 @@ class Curve:
         linex = self.linePlot.get_xdata()
         liney = self.linePlot.get_ydata()
 
-        for i in range(self.numberOfPoints):
+        for i in range(self.accurancy):
             linex[i] += x
-        for i in range(self.numberOfPoints):
+        for i in range(self.accurancy):
             liney[i] += y
+
+        self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
+        self.linePlot.set_data(linex,liney)
+
+    def scale_point(self,xf,yf,x,y,scale):
+        x = xf + (x-xf)*scale
+        y = yf + (y-yf)*scale
+        return x,y
+
+    def resize_curve(self,scale):
+        linex = self.linePlot.get_xdata()
+        liney = self.linePlot.get_ydata()
+
+        xf,yf = self.points['xs'][0],self.points['ys'][0]
+
+        for i in range(self.numberOfPoints-1):
+            self.points['xs'][i+1],self.points['ys'][i+1]  = self.scale_point(xf,yf,self.points['xs'][i+1],self.points['ys'][i+1],scale)
+
+        for i in range(self.accurancy-1):
+            linex[i+1], liney[i+1] = self.scale_point(xf,yf,linex[i+1],liney[i+1],scale)
 
         self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
         self.linePlot.set_data(linex,liney)
@@ -71,7 +97,6 @@ class Curve:
 
     def rotate_curve(self,angle,s,t):
         angle = m.radians(angle)
-        angle /= 2
 
         linex = self.linePlot.get_xdata()
         liney = self.linePlot.get_ydata()
@@ -79,16 +104,11 @@ class Curve:
         for i in range(self.numberOfPoints):
             self.points['xs'][i],self.points['ys'][i]  = self.rotate_points(self.points['xs'][i],self.points['ys'][i],angle,s,t)
 
-        for i in range(self.numberOfPoints):
+        for i in range(self.accurancy):
             linex[i], liney[i] = self.rotate_points(linex[i],liney[i],angle,s,t)
 
         self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
         self.linePlot.set_data(linex,liney)
-
-
-    def update_plots(self):
-        self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
-        self.linePlot.set_data(num.functionDict[self.curveType](self.points['xs'],self.points['ys']))
 
     def find_point(self,x,y):
         minDistance = 100000000000000

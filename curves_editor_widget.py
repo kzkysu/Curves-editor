@@ -42,8 +42,33 @@ class GetAngleWidget(Gtk.Box):
     def get_addPointButton(self):
         return self.addPointButton
 
-    def get_entry(self):
-        return self.entry
+    def get_entry_text(self):
+        return self.entry.get_text()
 
     def get_applyButton(self):
         return self.applyButton
+
+class getScaleWidget(Gtk.Grid):
+    def __init__(self,apply_function):
+        super(getScaleWidget,self).__init__()
+
+        self.scale = Gtk.Scale(orientation = Gtk.Orientation(0),adjustment=Gtk.Adjustment(100,25,200,5,10,0))
+        self.scale.set_size_request(300,10)
+        self.scale.set_value_pos(Gtk.PositionType.RIGHT)
+        self.scale.set_digits(0)
+
+        self.applyButton = Gtk.Button(label="Apply")
+        self.applyButton.connect("clicked",apply_function)
+
+        self.attach(self.scale,0,0,3,1)
+        self.attach(self.applyButton,3,0,1,1)
+
+        self.set_column_spacing(20)
+
+    def get_scale_value(self):
+        return self.scale.get_value()
+
+    def reset_scale_value(self):
+        self.scale.set_value(100)
+
+

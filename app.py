@@ -3,6 +3,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository import GdkX11
+from gi.repository.GdkPixbuf import Pixbuf
 
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
@@ -11,7 +12,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 from curve import Curve
-from curves_editor_widget import CurveWidget,GetAngleWidget
+from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget
 
 
 class MainWindow(Gtk.Window):
@@ -28,6 +29,8 @@ class MainWindow(Gtk.Window):
         self.activeCurveWidget = None
         self.activeMenuButton = None
         self.pointOfRotation = None
+
+        self.set_icon_from_file("icon.png")
 
         mainVBox = Gtk.VBox()
         self.add(mainVBox)
@@ -135,8 +138,12 @@ class MainWindow(Gtk.Window):
             if self.activeMenuButton != None and self.activeMenuButton != widget:
                 self.activeMenuButton.set_active(False)
             self.activeMenuButton = widget
+            self.getScaleWidget = getScaleWidget(self.resize_curve)
+            self.editorGrid.add(self.getScaleWidget)
+            self.show_all()
         else:
-            pass
+            self.getScaleWidget.destroy()
+            self.show_all()
 
     def on_rotate_curve_button_toggled(self,widget):
         if widget.get_active() == True:
@@ -244,8 +251,15 @@ class MainWindow(Gtk.Window):
             self.mouseY = event.ydata
             self.canvas.draw_idle()
 
+    def resize_curve(self,event):
+        scale = self.getScaleWidget.get_scale_value()
+        self.getScaleWidget.reset_scale_value()
+        if self.activeCurve != None:
+            self.activeCurve.resize_curve(scale/100.0)
+        self.canvas.draw_idle()
+
     def rotate_curve(self,event):
-        angle = self.getAngleWidget.get_entry().get_text()
+        angle = self.getAngleWidget.get_entry_text()
         if self.pointOfRotation != None:
             s = self.pointOfRotation[0].get_xdata()[0]
             t = self.pointOfRotation[0].get_ydata()[0]
