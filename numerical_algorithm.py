@@ -10,7 +10,7 @@ def polygonal_chain(xs,ys):
 		lxs = []
 		lys = []
 		for i in range(n-1):
-			if i == n-1:
+			if i == n-2:
 				m = number_of_points - m*(n-2)
 			for j in range(m):
 				lxs.append(xs[i] + (j+1)/m * (xs[i+1] - xs[i]))

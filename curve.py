@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numerical_algorithm as num
 import math as m
+import json
 
 class Curve:
     counter = 0
@@ -15,6 +16,26 @@ class Curve:
         self.numberOfPoints = 0
         self.activePoint = None
         self.funcY = None
+        self.color = None
+        self.width = None
+
+    def load_from_file(self,path,cnt):
+        try:
+            with open(path,'r') as ifile:
+                data = json.load(ifile)
+            self.name = data[name]
+            self.accurancy = data[accurancy]
+            self.points = {'xs': data['pointsxs'],'ys': data['pointsys']}
+            self.curveType = data['type']
+            self.numberOfPoints = len(self.points['xs'])
+            self.color = data['color']
+            self.width = data['width']
+            self.update_plots()
+
+        except:
+            print("Failed reading curve from file: " + path )
+
+
 
     def get_points_label(self):
         return self.pointsPlot.get_label()
@@ -62,6 +83,7 @@ class Curve:
 
         linex = self.linePlot.get_xdata()
         liney = self.linePlot.get_ydata()
+
 
         for i in range(self.accurancy):
             linex[i] += x
@@ -126,5 +148,19 @@ class Curve:
         del self.linePlot
         self.pointsPlot.remove()
         del self.pointsPlot
+
+    def save_to_file(self,name,path):
+        data = {}
+        data['name'] = name
+        data['width'] = self.width
+        data['type'] = self.curveType
+        data['accurancy'] = self.accurancy
+        data['color'] = self.color
+        data['pointsxs'] = self.points['xs']
+        data['pointsys'] = self.points['ys']
+
+        with open(path,'w') as ofile:
+            json.dump(data,ofile)
+
 
 
