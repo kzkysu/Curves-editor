@@ -5,17 +5,21 @@
    <attribute name="label" translatable="yes">File</attribute>
 	    <section>
       <item>
-        <attribute name="action">win.save</attribute>
+        <attribute name="action">app.save</attribute>
         <attribute name="label" translatable="yes">Save</attribute>
       </item>
       <item>
-        <attribute name="action">win.saveas</attribute>
+        <attribute name="action">app.saveas</attribute>
         <attribute name="label" translatable="yes">Save as...</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.load</attribute>
+        <attribute name="label" translatable="yes">Load</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="action">win.export</attribute>
+        <attribute name="action">app.export</attribute>
         <attribute name="label" translatable="yes">Export to *.png</attribute>
 	  </item>
     </section>

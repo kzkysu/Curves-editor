@@ -19,12 +19,12 @@ class Curve:
         self.color = None
         self.width = None
 
-    def load_from_file(self,path,cnt):
+    def load_from_file(self,path):
         try:
             with open(path,'r') as ifile:
                 data = json.load(ifile)
-            self.name = data[name]
-            self.accurancy = data[accurancy]
+            self.name = data['name']
+            self.accurancy = data['accurancy']
             self.points = {'xs': data['pointsxs'],'ys': data['pointsys']}
             self.curveType = data['type']
             self.numberOfPoints = len(self.points['xs'])
@@ -149,9 +149,9 @@ class Curve:
         self.pointsPlot.remove()
         del self.pointsPlot
 
-    def save_to_file(self,name,path):
+    def save_to_file(self,path):
         data = {}
-        data['name'] = name
+        data['name'] = self.name
         data['width'] = self.width
         data['type'] = self.curveType
         data['accurancy'] = self.accurancy

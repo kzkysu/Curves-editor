@@ -67,18 +67,6 @@ class MainWindow(Gtk.ApplicationWindow):
         deleteCurveButton = Gtk.Button(label="Delete active curve")
         deleteCurveButton.connect("clicked", self.delete_curve)
         mainOptionsHBox.pack_start(deleteCurveButton,False,False,0)
-
-        addPointButton = Gtk.ToggleButton(label="Add point")
-        addPointButton.connect("toggled", self.on_add_point_button_toggled)
-        #self.editorGrid.attach(addPointButton,1,1,1,1)
-
-        selectPointButton = Gtk.ToggleButton(label="Delete point")
-        selectPointButton.connect("toggled", self.on_delete_point_button_toggled)
-        #self.editorGrid.attach(selectPointButton,2,1,1,1)
-
-        movePointButton = Gtk.ToggleButton(label="Move point")
-        movePointButton.connect("toggled", self.on_move_point_button_toggled)
-        #self.editorGrid.attach(movePointButton,3,1,1,1)
         
         mainHBox = Gtk.HBox()
         mainVBox.pack_end(mainHBox,True,True,0)
@@ -153,31 +141,6 @@ class MainWindow(Gtk.ApplicationWindow):
             self.editPointsMenu = None
             self.show_all()
  
-    def on_add_point_button_toggled(self,widget):
-        if widget.get_active() == True:
-            self.set_active_widget(widget)
-            self.add_point_active = self.canvas.mpl_connect('button_press_event', self.appCanvas.add_point)
-        else:
-            self.canvas.mpl_disconnect(self.add_point_active)
-    
-    def on_delete_point_button_toggled(self,widget):
-        if widget.get_active() == True:
-            self.set_active_widget(widget)
-            self.delete_point_active = self.canvas.mpl_connect('pick_event', self.appCanvas.delete_point)
-        else:
-            self.canvas.mpl_disconnect(self.delete_point_active)  
-            
-
-    def on_move_point_button_toggled(self,widget):
-        if widget.get_active() == True:
-            self.set_active_widget(widget)
-            self.select_point_active = self.canvas.mpl_connect('pick_event', self.appCanvas.select_point)
-            self.pick_point_active = self.canvas.mpl_connect('button_press_event', self.appCanvas.pick_point)
-            self.drop_point_active = self.canvas.mpl_connect('button_release_event', self.appCanvas.drop_point)
-        else:
-            self.canvas.mpl_disconnect(self.select_point_active)
-            self.canvas.mpl_disconnect(self.pick_point_active)
-            self.canvas.mpl_disconnect(self.drop_point_active)
 
     def add_curve(self,event):
         newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
@@ -211,3 +174,12 @@ class MainWindow(Gtk.ApplicationWindow):
             self.activeCurveWidget = None
 
             self.canvas.draw_idle()
+
+    def save_active_curve(self,path):
+        if self.activeCurve != None:
+            self.activeCurve.save_to_file(path)
+
+    def load_curve(self,path):
+        self.add_curve(None)
+        self.activeCurve.load_from_file(path)
+        self.canvas.draw_idle()
