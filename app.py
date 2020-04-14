@@ -21,6 +21,7 @@ class App(Gtk.Application):
 
         self.add_gio_action('saveas',self.save_file_as)
         self.add_gio_action('load',self.load_json)
+        self.add_gio_action('export',self.export_to_png)
 
     def do_activate(self):
         if not self.window:
@@ -70,6 +71,27 @@ class App(Gtk.Application):
         if response == Gtk.ResponseType.OK:
             path = dialog.get_filename()
             self.window.load_curve(path)
+            
+        dialog.destroy()
+
+    def export_to_png(self,action,userData):
+        dialog = Gtk.FileChooserDialog(title="Please choose a file", parent=self.window,
+            action=Gtk.FileChooserAction.SAVE)
+        dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_SAVE_AS, Gtk.ResponseType.OK)
+
+        dialog.set_current_name("newfigure.png")
+        dialog.set_do_overwrite_confirmation(True)
+        dialog.set_current_folder(os.getcwd() + "/saved_figures")
+
+        fileFilter = Gtk.FileFilter()
+        fileFilter.add_pattern("*.png")
+        dialog.add_filter(fileFilter)
+
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            path = dialog.get_filename()
+            self.window.save_fig_to_png(path)
             
         dialog.destroy()
 

@@ -183,3 +183,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.add_curve(None)
         self.activeCurve.load_from_file(path)
         self.canvas.draw_idle()
+
+    def save_fig_to_png(self,path):
+        plt.axis('off')
+        plt.savefig(path,format='png')
+        plt.axis('on')
