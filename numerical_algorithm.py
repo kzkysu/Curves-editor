@@ -19,5 +19,10 @@ def polygonal_chain(xs,ys):
 	return foo
 
 
-functionDict = {'polygonal_chain':polygonal_chain}
+functionDict = {'polygonal_chain':polygonal_chain,
+				'polynomial_interpolation':0,
+				'natural_cubic_spline':0}
+
+def get_curves_types():
+	return functionDict.keys()
 

@@ -11,7 +11,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 from curve import Curve
-from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget
+from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget,CurvesTypesComboBox
 from app_canvas import AppCanvas
 from edit_curve_menu import EditCurveMenu
 from edit_points_menu import EditPointsMenu
@@ -33,6 +33,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.getScaleWidget = None
         self.editCurveMenu = None
         self.editPointsMenu = None
+        self.pointsVisible = True
+        self.numbersVisible = False
 
         self.set_icon_from_file("data/icon.png")
 
@@ -42,10 +44,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.editorGrid = Gtk.Grid()
         self.editorGrid.set_row_spacing(6)
         self.editorGrid.set_column_spacing(5)
+        self.editorGrid.set_row_homogeneous(True)
         mainVBox.pack_start(self.editorGrid,False,False,0)
 
         mainOptionsHBox = Gtk.HBox()
-        #mainVBox.pack_start(mainOptionsHBox,False,False,0)
         self.editorGrid.attach(mainOptionsHBox,0,0,1,2)
 
         selectCurveButton = Gtk.ToggleButton(label="Select curve")
@@ -67,6 +69,12 @@ class MainWindow(Gtk.ApplicationWindow):
         deleteCurveButton = Gtk.Button(label="Delete active curve")
         deleteCurveButton.connect("clicked", self.delete_curve)
         mainOptionsHBox.pack_start(deleteCurveButton,False,False,0)
+
+        self.chooseTypeComboBox = CurvesTypesComboBox(self.change_curve_type)
+        mainOptionsHBox.pack_start(self.chooseTypeComboBox,False,False,0)
+
+        self.emptyHBox = Gtk.HBox()
+        self.editorGrid.attach(self.emptyHBox,0,2,1,4)
         
         mainHBox = Gtk.HBox()
         mainVBox.pack_end(mainHBox,True,True,0)
@@ -106,7 +114,19 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def set_active_curve(self):
         self.activeCurve = self.activeCurveWidget.get_curve()
+        self.chooseTypeComboBox.set_current_type(self.activeCurve.curveType)
+
+        if self.pointsVisible:
+            self.activeCurve.show_points()
+        else:
+            self.activeCurve.hide_points()
+        if self.numbersVisible:
+            self.activeCurve.show_numbers()
+        else:
+            self.activeCurve.hide_numbers()
+        
         self.appCanvas.set_activeCurve(self.activeCurve)
+
         if self.editCurveMenu != None:
             self.editCurveMenu.update_active_curve(self.activeCurve)
         if self.editPointsMenu != None:
@@ -123,7 +143,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if widget.get_active() == True:
             self.set_active_widget(widget)
             self.editCurveMenu = EditCurveMenu(self.appCanvas,self.activeCurve,self.curves)
-            self.editorGrid.attach(self.editCurveMenu,0,2,1,3)
+            self.editorGrid.attach(self.editCurveMenu,0,2,1,2)
             self.show_all()
         else:
             self.editCurveMenu.destroy_menu()
@@ -134,7 +154,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if widget.get_active() == True:
             self.set_active_widget(widget)
             self.editPointsMenu = EditPointsMenu(self.appCanvas,self.activeCurve,self.curves)
-            self.editorGrid.attach(self.editPointsMenu,0,2,1,3)
+            self.editorGrid.attach(self.editPointsMenu,0,2,1,2)
             self.show_all()
         else:
             self.editPointsMenu.destroy_menu()
@@ -161,8 +181,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if 'line' in lineName:
             self.activeCurveWidget = self.curves[lineName]
             self.activeCurveWidget.get_radioButton().set_active(True)
-            self.activeCurve = self.activeCurveWidget.get_curve()
-            self.appCanvas.set_activeCurve(self.activeCurve)
+            self.set_active_curve()
 
     def delete_curve(self,event):
         if self.activeCurve != None:
@@ -188,3 +207,41 @@ class MainWindow(Gtk.ApplicationWindow):
         plt.axis('off')
         plt.savefig(path,format='png')
         plt.axis('on')
+
+    def change_curve_type(self,widget):
+        if self.activeCurve != None:
+            self.activeCurve.change_type(widget.get_active_text())
+
+    def hide_points(self):
+        if self.activeCurve != None:
+            self.activeCurve.hide_points()
+            self.canvas.draw_idle()
+            self.pointsVisible = False
+
+    def show_points(self):
+        if self.activeCurve != None:
+            self.activeCurve.show_points()
+            self.canvas.draw_idle()
+            self.pointsVisible = True
+
+    def show_numbers(self):
+        if self.activeCurve != None:
+            self.activeCurve.show_numbers()
+            self.canvas.draw_idle()
+            self.numbersVisible = True
+
+    def hide_numbers(self):
+        if self.activeCurve != None:
+            self.activeCurve.hide_numbers()
+            self.canvas.draw_idle()
+            self.numbersVisible = False
+
+    def hide_points_all(self):
+        for key in self.curves:
+            self.curves[key].get_curve().hide_points()
+        self.canvas.draw_idle()
+    
+    def show_points_all(self):
+        for key in self.curves:
+            self.curves[key].get_curve().show_points()
+        self.canvas.draw_idle()

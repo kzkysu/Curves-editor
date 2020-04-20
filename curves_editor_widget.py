@@ -2,6 +2,8 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
+import numerical_algorithm as num_alg
+
 class CurveWidget(Gtk.Box):
     def __init__(self,curve,radioButton,counter,radio_toggled_function):
         self.curve = curve
@@ -13,6 +15,9 @@ class CurveWidget(Gtk.Box):
         self.radioButton.set_active(True)
         self.radioButton.connect("toggled",radio_toggled_function)
 
+        self.toggleButton.set_active(True)
+        self.toggleButton.connect("toggled",self.on_button_toggled)
+
         self.pack_start(self.radioButton,False,False,0)
         self.pack_start(self.toggleButton,False,False,5)
 
@@ -22,6 +27,22 @@ class CurveWidget(Gtk.Box):
         return self.radioButton
     def get_toggleButton(self):
         return self.toggleButton
+
+    def on_button_toggled(self,widget):
+        if widget.get_active():
+            self.curve.show_curve()
+        else:
+            self.curve.hide_curve()
+
+class CurvesTypesComboBox(Gtk.ComboBoxText):
+    def __init__(self,on_type_changed):
+        super(CurvesTypesComboBox,self).__init__()
+        for curveType in list(num_alg.get_curves_types()):
+            self.append(curveType,curveType)
+        self.connect("changed",on_type_changed)
+
+    def set_current_type(self,curveType):
+        self.set_active_id(curveType)
 
 class GetAngleWidget(Gtk.Box):
     def __init__(self,apply_function,add_point_function):

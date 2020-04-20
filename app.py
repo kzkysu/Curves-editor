@@ -22,6 +22,19 @@ class App(Gtk.Application):
         self.add_gio_action('saveas',self.save_file_as)
         self.add_gio_action('load',self.load_json)
         self.add_gio_action('export',self.export_to_png)
+        self.add_gio_action('hidepointsall',self.on_hidepointsall_clicked)
+        self.add_gio_action('showpointsall',self.on_showpointsall_clicked)
+
+        hidePointsAction = Gio.SimpleAction.new_stateful("hidepoints", None,
+                                           GLib.Variant.new_boolean(False))
+        hidePointsAction.connect("change-state", self.on_hidepoints_toggled)
+        self.add_action(hidePointsAction)
+
+        showNumbersAction = Gio.SimpleAction.new_stateful("shownumbers", None,
+                                           GLib.Variant.new_boolean(False))
+        showNumbersAction.connect("change-state", self.on_shownumbers_toggled)
+        self.add_action(showNumbersAction)
+
 
     def do_activate(self):
         if not self.window:
@@ -94,6 +107,30 @@ class App(Gtk.Application):
             self.window.save_fig_to_png(path)
             
         dialog.destroy()
+
+    def on_hidepoints_toggled(self,action,value):
+        action.set_state(value)
+        if value.get_boolean():
+            self.window.hide_points()
+        else:
+            self.window.show_points()
+    
+    def on_shownumbers_toggled(self,action,value):
+        action.set_state(value)
+        if value.get_boolean():
+            self.window.show_numbers()
+        else:
+            self.window.hide_numbers()
+
+    def on_hidepointsall_clicked(self,action,value):
+        self.window.hide_points_all()
+
+    def on_showpointsall_clicked(self,action,value):
+        self.window.show_points_all()
+
+    def on_change_active_curve(self,points_visible):
+        if points_visible:
+            pass
 
 
 if __name__ == "__main__":
