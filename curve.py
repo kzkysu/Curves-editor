@@ -8,7 +8,7 @@ class Curve:
     def __init__(self,pointsPlot,linePlot,curveType):
         self.name = "Curve " + str(Curve.counter)
         self.accurancy = 10000
-        self.workingAccurancy = 1000
+        self.workingAccurancy = 100
         self.currentAccurancy = self.accurancy
         Curve.counter += 1
         self.linePlot = linePlot[0]
@@ -53,7 +53,7 @@ class Curve:
     def update_plots_extended(self):
         self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
         self.funcY = num.functionDict[self.curveType](self.points['xs'],self.points['ys'])
-        lxs,lys = self.funcY(self.accurancy)
+        lxs,lys = self.funcY(self.currentAccurancy)
         self.linePlot.set_data(lxs,lys)
 
     def update_plots(self,lxs,lys):
@@ -219,3 +219,4 @@ class Curve:
 
     def set_normal_accurancy(self):
         self.currentAccurancy = self.accurancy
+        self.update_plots_extended()

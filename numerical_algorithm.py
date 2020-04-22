@@ -18,9 +18,57 @@ def polygonal_chain(xs,ys):
 		return lxs,lys
 	return foo
 
+def interpolate(xs,ys):
+	def foo(t):
+		n = len(xs)-1 
+		for i in range(n+1):
+			if xs[i]==t:
+				return ys[i]
+		a = [[1]]
+		for i in range(n+1):
+			a[0].append(0)
+		n = len(xs)-1 
+		for i in range(1,n+1):
+			a.append([])
+			for j in range(i):
+				#print(i,len(a),j+1)
+				a[i].append(a[i-1][j]/(xs[i]-xs[j]))
+				a[j+1].append(a[j][i]-a[i][j])
+		n = len(xs)
+		s1 = 0
+		for i in range(n):
+			s1 += a[n-1][i]/(t-xs[i])*ys[i]
+		s2=0
+		for i in range(n):
+			s2 += a[n-1][i]/(t-xs[i])
+
+		return s1/s2
+	return foo
+
+def polynomial_interpolation(xs,ys):
+	def foo(number_of_points):
+		i = 0 
+		n = len(xs)
+		if n < 2:
+			return [],[]
+		lxs = []
+		lys = []
+		ts = []
+		for i in range(n):
+			ts.append(i/(n-1))
+
+		Lnx = interpolate(ts,xs)
+		Lny = interpolate(ts,ys)
+		for i in range(number_of_points):
+			lxs.append(Lnx(i/(number_of_points-1)))
+			lys.append(Lny(i/(number_of_points-1)))
+		return lxs,lys
+	return foo
+
+
 
 functionDict = {'polygonal_chain':polygonal_chain,
-				'polynomial_interpolation':0,
+				'polynomial_interpolation':polynomial_interpolation,
 				'natural_cubic_spline':0}
 
 def get_curves_types():

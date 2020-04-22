@@ -41,7 +41,7 @@ class AppCanvas():
     
     def pick_curve(self,event):
         lineName = event.artist.get_label()
-        if lineName == self.activeCurve.pointsPlot.get_label():
+        if lineName == self.activeCurve.linePlot.get_label():
             self.drag_curve_active = self.canvas.mpl_connect('motion_notify_event', self.drag_curve)
             self.drop_curve_active = self.canvas.mpl_connect('button_release_event', self.drop_curve)
             self.mouseX = event.mouseevent.xdata
@@ -50,11 +50,12 @@ class AppCanvas():
 
     def drop_curve(self,event):
         if self.drag_curve_active != None:
-            self.activeCurve.move_curve(event.xdata-self.mouseX,event.ydata-self.mouseY)
-            self.canvas.draw_idle()
+            if event.inaxes != None:
+                self.activeCurve.move_curve(event.xdata-self.mouseX,event.ydata-self.mouseY)
             self.canvas.mpl_disconnect(self.drag_curve_active)
             self.canvas.mpl_disconnect(self.drop_curve_active)
             self.activeCurve.set_normal_accurancy()
+            self.canvas.draw_idle()
             self.drag_curve_active = None
             self.drop_curve_active = None
     
@@ -128,6 +129,7 @@ class AppCanvas():
         if self.activeCurve != None:
             self.activeCurve.disactivate_point()
             self.activeCurve.set_normal_accurancy()
+            self.canvas.draw_idle()
 
     def drag_point(self,event):
         if event.inaxes != None:
