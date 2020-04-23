@@ -5,8 +5,9 @@ from gi.repository import Gtk
 import numerical_algorithm as num_alg
 
 class CurveWidget(Gtk.Box):
-    def __init__(self,curve,radioButton,counter,radio_toggled_function):
+    def __init__(self,curve,radioButton,counter,radio_toggled_function,canvas):
         self.curve = curve
+        self.canvas = canvas
         super(CurveWidget,self).__init__()
        
         self.radioButton = Gtk.RadioButton.new_from_widget(radioButton)
@@ -31,8 +32,10 @@ class CurveWidget(Gtk.Box):
     def on_button_toggled(self,widget):
         if widget.get_active():
             self.curve.show_curve()
+            self.canvas.draw_idle()
         else:
             self.curve.hide_curve()
+            self.canvas.draw_idle()
 
 class CurvesTypesComboBox(Gtk.ComboBoxText):
     def __init__(self,on_type_changed):

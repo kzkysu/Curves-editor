@@ -172,7 +172,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def add_curve(self,event):
         newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
             self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)),'polygonal_chain')
-        newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter,self.set_active_curve_from_button)
+        newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter,self.set_active_curve_from_button,self.canvas)
 
         self.activeCurveWidget = newCurveWidget
         self.set_active_curve()

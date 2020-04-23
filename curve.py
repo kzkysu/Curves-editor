@@ -36,8 +36,9 @@ class Curve:
             self.color = data['color']
             self.width = data['width']
             self.texts = []
-            for i in self.numberOfPoints:
-                self.texts.append(points['xs'][i],points['ys'][i])
+            for i in range(self.numberOfPoints):
+                self.texts.append(plt.text(self.points['xs'][i],self.points['ys'][i],i.__str__()))
+                self.texts[i].set_visible(self.numbersVisble)
             self.update_plots_extended()
 
         except:
