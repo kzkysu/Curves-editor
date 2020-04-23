@@ -143,6 +143,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if widget.get_active() == True:
             self.set_active_widget(widget)
             self.editCurveMenu = EditCurveMenu(self.appCanvas,self.activeCurve,self.curves)
+            self.editCurveMenu.splitCurveButton.connect("toggled", self.on_split_curve_button_toggled)
             self.editorGrid.attach(self.editCurveMenu,0,2,1,2)
             self.show_all()
         else:
@@ -160,7 +161,13 @@ class MainWindow(Gtk.ApplicationWindow):
             self.editPointsMenu.destroy_menu()
             self.editPointsMenu = None
             self.show_all()
- 
+        
+    def on_split_curve_button_toggled(self,widget):
+        if widget.get_active() == True:
+            self.set_active_widget(widget)
+            self.split_curve_active = self.canvas.mpl_connect('pick_event', self.appCanvas.choose_split_point)
+        else:
+            self.canvas.mpl_disconnect(self.split_curve_active)
 
     def add_curve(self,event):
         newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
@@ -193,6 +200,13 @@ class MainWindow(Gtk.ApplicationWindow):
             self.activeCurveWidget = None
 
             self.canvas.draw_idle()
+
+    def split_curve(self,event):
+        lineName = event.artist.get_label()
+        if lineName == self.activeCurve.linePlot.get_label():
+            oldCurve = self.activeCurve
+            self.add_curve(None)
+            oldCurve.split_curve(self.activeCurve,event.xdate,event.ydate)
 
     def save_active_curve(self,path):
         if self.activeCurve != None:

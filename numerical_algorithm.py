@@ -65,11 +65,17 @@ def polynomial_interpolation(xs,ys):
 		return lxs,lys
 	return foo
 
+def polygonal_chain_split(xs,ys,x,y):
+	pass
+def polynomial_interpolation_split(xs,ys,x,y):
+	pass
+
 
 
 functionDict = {'polygonal_chain':polygonal_chain,
-				'polynomial_interpolation':polynomial_interpolation,
-				'natural_cubic_spline':0}
+				'polynomial_interpolation':polynomial_interpolation}
+splitDict = {'polygonal_chain':polygonal_chain_split,
+				'polynomial_interpolation':polynomial_interpolation_split}
 
 def get_curves_types():
 	return functionDict.keys()

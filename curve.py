@@ -175,6 +175,12 @@ class Curve:
         self.pointsPlot.remove()
         del self.pointsPlot
 
+    def split_curve(self,newCurve,x,y):
+        newCurve.width = self.width
+        newCurve.color = self.color
+        newCurve.type = self.curveType
+        xs1,ys1,xs2,ys2 = num.splitDict[self.curveType](self.points['xs'],self.points['ys'],x,y)
+
     def save_to_file(self,path):
         data = {}
         data['name'] = self.name

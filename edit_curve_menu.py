@@ -35,6 +35,9 @@ class EditCurveMenu(Gtk.HBox):
         self.rotateCurveButton.connect("toggled", self.on_rotate_curve_button_toggled)
         self.pack_start(self.rotateCurveButton,False,False,0)
 
+        self.splitCurveButton = Gtk.ToggleButton(label = "Split curve")
+        self.pack_start(self.rotateCurveButton,False,False,0)
+
     def update_active_curve(self,activeCurve):
         self.activeCurve = activeCurve
 
