@@ -6,6 +6,8 @@ from matplotlib import axes
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
+from points_menu import PointsVBox
+
 class EditPointsMenu(Gtk.HBox):
     def __init__(self,appCanvas,activeCurve,curves):
         super().__init__()

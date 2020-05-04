@@ -8,7 +8,7 @@ class CurveWidget(Gtk.Box):
     def __init__(self,curve,radioButton,counter,radio_toggled_function,canvas):
         self.curve = curve
         self.canvas = canvas
-        super(CurveWidget,self).__init__()
+        super().__init__()
        
         self.radioButton = Gtk.RadioButton.new_from_widget(radioButton)
         self.toggleButton = Gtk.ToggleButton(label="Curve " + str(counter))
@@ -38,18 +38,24 @@ class CurveWidget(Gtk.Box):
             self.canvas.draw_idle()
 
 class CurvesTypesComboBox(Gtk.ComboBoxText):
-    def __init__(self,on_type_changed):
-        super(CurvesTypesComboBox,self).__init__()
-        for curveType in list(num_alg.get_curves_types()):
+
+    def __init__(self,curveTypes):
+        super().__init__()
+        for curveType in curveTypes:
             self.append(curveType,curveType)
-        self.connect("changed",on_type_changed)
+
+        self.set_active_id(curveTypes[0])
 
     def set_current_type(self,curveType):
         self.set_active_id(curveType)
 
+    def get_current_type(self):
+        return self.get_active_text()
+
+    
 class GetAngleWidget(Gtk.Box):
     def __init__(self,apply_function,add_point_function):
-        super(GetAngleWidget,self).__init__()
+        super().__init__()
 
         self.addPointButton =  Gtk.ToggleButton(label="Add point of rotation")
         self.entry = Gtk.Entry()
@@ -74,7 +80,7 @@ class GetAngleWidget(Gtk.Box):
 
 class getScaleWidget(Gtk.Grid):
     def __init__(self,apply_function):
-        super(getScaleWidget,self).__init__()
+        super().__init__()
 
         self.scale = Gtk.Scale(orientation = Gtk.Orientation(0),adjustment=Gtk.Adjustment(100,25,200,5,10,0))
         self.scale.set_size_request(300,10)

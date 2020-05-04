@@ -10,13 +10,18 @@ from matplotlib import axes
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-from curve import Curve
+from curve_polygonal import PolygonalChain
+from curve_interpolation import PolynomialInterpolation
 from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget,CurvesTypesComboBox
 from app_canvas import AppCanvas
 from edit_curve_menu import EditCurveMenu
 from edit_points_menu import EditPointsMenu
+from points_menu import PointsMenu
+from curve_menu import CurveMenu
 
 class MainWindow(Gtk.ApplicationWindow):
+    curveTypes = {'polygonal chain':PolygonalChain,'polynomial interpolation':PolynomialInterpolation}
+
     def __init__(self,application=None):
         super(MainWindow,self).__init__(application=application)
         self.set_title("Curves and surfaces editor")
@@ -32,9 +37,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.getAngleWidget = None
         self.getScaleWidget = None
         self.editCurveMenu = None
-        self.editPointsMenu = None
+        #self.editPointsMenu = None
         self.pointsVisible = True
         self.numbersVisible = False
+        self.activeToggleButton = []
 
         self.set_icon_from_file("data/icon.png")
 
@@ -48,30 +54,21 @@ class MainWindow(Gtk.ApplicationWindow):
         mainVBox.pack_start(self.editorGrid,False,False,0)
 
         mainOptionsHBox = Gtk.HBox()
+        mainOptionsHBox.set_spacing(3)
         self.editorGrid.attach(mainOptionsHBox,0,0,1,2)
 
-        selectCurveButton = Gtk.ToggleButton(label="Select curve")
-        selectCurveButton.connect("toggled", self.on_select_curve_button_toggled)
-        mainOptionsHBox.pack_start(selectCurveButton,False,False,0)
-
-        editCurveButton = Gtk.ToggleButton(label="Edit curve")
-        editCurveButton.connect("toggled", self.on_edit_curve_button_toggled)
-        mainOptionsHBox.pack_start(editCurveButton,False,False,0)
-
-        editPointsButton = Gtk.ToggleButton(label="Edit points")
-        editPointsButton.connect("toggled", self.on_edit_points_button_toggled)
-        mainOptionsHBox.pack_start(editPointsButton,False,False,0)
+        addCurveBox = Gtk.Box()
+        mainOptionsHBox.pack_start(addCurveBox,False,False,0)
 
         addCurveButton = Gtk.Button(label="Add curve")
-        addCurveButton.connect("clicked", self.add_curve)
-        mainOptionsHBox.pack_start(addCurveButton,False,False,0)
+        addCurveButton.connect("clicked", self.add_curve_clicked)
+        addCurveBox.pack_start(addCurveButton,False,False,0)
 
-        deleteCurveButton = Gtk.Button(label="Delete active curve")
-        deleteCurveButton.connect("clicked", self.delete_curve)
-        mainOptionsHBox.pack_start(deleteCurveButton,False,False,0)
+        self.chooseTypeComboBox = CurvesTypesComboBox(list(MainWindow.curveTypes.keys()))
+        addCurveBox.pack_start(self.chooseTypeComboBox,False,False,0)
 
-        self.chooseTypeComboBox = CurvesTypesComboBox(self.change_curve_type)
-        mainOptionsHBox.pack_start(self.chooseTypeComboBox,False,False,0)
+        self.extraBox = Gtk.Box()
+        mainOptionsHBox.pack_start(self.extraBox,False,False,0)
 
         self.emptyHBox = Gtk.HBox()
         self.editorGrid.attach(self.emptyHBox,0,2,1,4)
@@ -79,9 +76,11 @@ class MainWindow(Gtk.ApplicationWindow):
         mainHBox = Gtk.HBox()
         mainVBox.pack_end(mainHBox,True,True,0)
 
+        canvasHBox = Gtk.HBox()
+        mainHBox.pack_start(canvasHBox,True,True,0)
+        
         sw = Gtk.ScrolledWindow()
-        mainHBox.pack_start(sw,True,True,0)
-
+       
         curvesList = Gtk.ScrolledWindow()
         curvesList.set_size_request(140,0)
         self.curvesVBox = Gtk.VBox()
@@ -93,6 +92,19 @@ class MainWindow(Gtk.ApplicationWindow):
         self.canvas = self.appCanvas.get_canvas()
         sw.add(self.canvas)
 
+        self.editCurveMenu = CurveMenu(self.appCanvas,self.activeCurve,self.curves,self.activeToggleButton,self.extraBox)
+        self.editorGrid.attach(self.editCurveMenu,0,2,1,2)
+
+        self.editCurveMenu.basicMenu.selectCurveButton.connect("toggled", self.on_select_curve_button_toggled)
+        self.editCurveMenu.basicMenu.splitCurveButton.connect("toggled", self.on_split_curve_button_toggled)
+        self.editCurveMenu.basicMenu.deleteCurveButton.connect("clicked", self.delete_curve)
+
+        self.pointsMenu = PointsMenu(self.appCanvas,self.activeCurve,self.curves,self.activeToggleButton)
+
+        canvasHBox.pack_start(self.pointsMenu,False,False,0)
+        canvasHBox.pack_start(sw,True,True,0)
+
+
         self.ax = self.appCanvas.get_ax()
 
         self.show_all()
@@ -103,9 +115,12 @@ class MainWindow(Gtk.ApplicationWindow):
         print("yupi")
 
     def set_active_widget(self,widget):
-        if self.activeMenuButton != None and self.activeMenuButton != widget:
-            self.activeMenuButton.set_active(False)
-        self.activeMenuButton = widget
+        if self.activeToggleButton != []:
+            if self.activeToggleButton[0] != widget:
+                self.activeToggleButton[0].set_active(False)
+            self.activeToggleButton[0] = widget
+        else:
+            self.activeToggleButton.append(widget)
 
     def set_active_curve_from_button(self,widget):
         if widget.get_active():
@@ -129,8 +144,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         if self.editCurveMenu != None:
             self.editCurveMenu.update_active_curve(self.activeCurve)
-        if self.editPointsMenu != None:
-            self.editPointsMenu.update_active_curve(self.activeCurve)
+        self.pointsMenu.update_active_curve(self.activeCurve)
         
     def on_select_curve_button_toggled(self,widget):
         if widget.get_active() == True:
@@ -138,40 +152,20 @@ class MainWindow(Gtk.ApplicationWindow):
             self.select_curve_active = self.canvas.mpl_connect('pick_event', self.select_curve)
         else:
             self.canvas.mpl_disconnect(self.select_curve_active)
-
-    def on_edit_curve_button_toggled(self,widget):
-        if widget.get_active() == True:
-            self.set_active_widget(widget)
-            self.editCurveMenu = EditCurveMenu(self.appCanvas,self.activeCurve,self.curves)
-            self.editCurveMenu.splitCurveButton.connect("toggled", self.on_split_curve_button_toggled)
-            self.editorGrid.attach(self.editCurveMenu,0,2,1,2)
-            self.show_all()
-        else:
-            self.editCurveMenu.destroy_menu()
-            self.editCurveMenu = None
-            self.show_all()
-
-    def on_edit_points_button_toggled(self,widget):
-        if widget.get_active() == True:
-            self.set_active_widget(widget)
-            self.editPointsMenu = EditPointsMenu(self.appCanvas,self.activeCurve,self.curves)
-            self.editorGrid.attach(self.editPointsMenu,0,2,1,2)
-            self.show_all()
-        else:
-            self.editPointsMenu.destroy_menu()
-            self.editPointsMenu = None
-            self.show_all()
         
     def on_split_curve_button_toggled(self,widget):
         if widget.get_active() == True:
             self.set_active_widget(widget)
-            self.split_curve_active = self.canvas.mpl_connect('pick_event', self.appCanvas.choose_split_point)
+            self.split_curve_active = self.canvas.mpl_connect('pick_event', self.split_curve)
         else:
             self.canvas.mpl_disconnect(self.split_curve_active)
 
-    def add_curve(self,event):
-        newCurve = Curve(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
-            self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)),'polygonal_chain')
+    def add_curve_clicked(self,event):
+        self.add_curve(MainWindow.curveTypes[self.chooseTypeComboBox.get_current_type()])
+
+    def add_curve(self,CurveClass):
+        newCurve = CurveClass(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
+            self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)))
         newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter,self.set_active_curve_from_button,self.canvas)
 
         self.activeCurveWidget = newCurveWidget
@@ -203,10 +197,11 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def split_curve(self,event):
         lineName = event.artist.get_label()
-        if lineName == self.activeCurve.linePlot.get_label():
+        if self.activeCurve != None and lineName == self.activeCurve.linePlot.get_label():
             oldCurve = self.activeCurve
-            self.add_curve(None)
-            oldCurve.split_curve(self.activeCurve,event.xdate,event.ydate)
+            self.add_curve(self.curveTypes[self.activeCurve.curveType])
+            oldCurve.calculate_split(event.mouseevent.xdata,event.mouseevent.ydata,self.activeCurve)
+            self.canvas.draw_idle()
 
     def save_active_curve(self,path):
         if self.activeCurve != None:

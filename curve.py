@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
-import numerical_algorithm as num
 import math as m
 import json
 
 class Curve:
     counter = 0
-    def __init__(self,pointsPlot,linePlot,curveType):
+    curveType = None
+    def __init__(self,pointsPlot,linePlot):
         self.name = "Curve " + str(Curve.counter)
         self.accurancy = 10000
         self.workingAccurancy = 100
@@ -14,8 +14,7 @@ class Curve:
         self.linePlot = linePlot[0]
         self.pointsPlot = pointsPlot[0]
         self.texts = []
-        self.points = {'xs':[],'ys':[]}
-        self.curveType = curveType
+        self.points = [list(),list()]
         self.numberOfPoints = 0
         self.activePoint = None
         self.funcY = None
@@ -31,77 +30,90 @@ class Curve:
             self.name = data['name']
             self.accurancy = data['accurancy']
             self.points = {'xs': data['pointsxs'],'ys': data['pointsys']}
-            self.curveType = data['type']
-            self.numberOfPoints = len(self.points['xs'])
+            Curve.curveType = data['type']
+            self.numberOfPoints = len(self.points[0])
             self.color = data['color']
             self.width = data['width']
             self.texts = []
             for i in range(self.numberOfPoints):
-                self.texts.append(plt.text(self.points['xs'][i],self.points['ys'][i],i.__str__()))
+                self.texts.append(plt.text(self.points[0][i],self.points[1][i],i.__str__()))
                 self.texts[i].set_visible(self.numbersVisble)
             self.update_plots_extended()
 
         except:
             print("Failed reading curve from file: " + path )
 
-    def change_type(self,curveType):
+    '''def change_type(self,curveType):
         self.curveType = curveType
-        self.update_plots_extended()
+        self.update_plots_extended()'''
 
     def get_points_label(self):
         return self.pointsPlot.get_label()
 
+    def calculate_function(self):
+        pass
+
     def update_plots_extended(self):
-        self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
-        self.funcY = num.functionDict[self.curveType](self.points['xs'],self.points['ys'])
+        self.pointsPlot.set_data(self.points[0],self.points[1])
+        self.funcY = self.calculate_function()
         lxs,lys = self.funcY(self.currentAccurancy)
         self.linePlot.set_data(lxs,lys)
 
     def update_plots(self,lxs,lys):
-        self.pointsPlot.set_data(self.points['xs'],self.points['ys'])
+        self.pointsPlot.set_data(self.points[0],self.points[1])
         self.linePlot.set_data(lxs,lys)
+
+    def update_numbers(self,startNumber):
+        n = len(self.points[0])
+        for i in range(startNumber,n):
+            self.texts[i].set_text(i+1)
+
+    def paste_curve_settings(self,toCurve):
+        toCurve.accurancy = self.accurancy
+        toCurve.workingAccurancy = self.workingAccurancy
+        #toCurve.color = self.color
+        toCurve.width = self.width
 
     def add_point(self,x,y):
         self.numberOfPoints += 1
 
-        self.points['xs'].append(x)
-        self.points['ys'].append(y)
-        self.texts.append(plt.text(self.points['xs'][-1],self.points['ys'][-1],self.numberOfPoints.__str__()))
+        self.points[0].append(x)
+        self.points[1].append(y)
+        self.texts.append(plt.text(self.points[0][-1],self.points[1][-1],self.numberOfPoints.__str__()))
         self.texts[-1].set_visible(self.numbersVisble)
 
         self.update_plots_extended()
 
     def delete_point(self,x,y):
-        i = self.find_point(x,y)
-        del self.points['xs'][i]
-        del self.points['ys'][i]
+        i = self.find_point(x,y,self.points[0],self.points[1])
+        del self.points[0][i]
+        del self.points[1][i]
         self.texts[i].remove()
         del self.texts[i]
 
-        for j in range(i,self.numberOfPoints-1):
-            self.texts[j].set_text(j+1)
-
         self.numberOfPoints -= 1
+
+        self.update_numbers(i)
 
         self.update_plots_extended()
 
     def activate_point(self,x,y):
-        self.activePoint = self.find_point(x,y)
+        self.activePoint = self.find_point(x,y,self.points[0],self.points[1])
 
     def disactivate_point(self):
         self.activePoint = None
 
     def move_point(self,x,y):
         if self.activePoint != None:
-            self.points['xs'][self.activePoint] = x
-            self.points['ys'][self.activePoint] = y
+            self.points[0][self.activePoint] = x
+            self.points[1][self.activePoint] = y
             self.texts[self.activePoint].set_position((x,y))
             self.update_plots_extended()
 
     def move_curve(self,x,y):
         for i in range(self.numberOfPoints):
-            self.points['xs'][i] += x
-            self.points['ys'][i] += y
+            self.points[0][i] += x
+            self.points[1][i] += y
         for i in range(self.numberOfPoints):
             oldx, oldy = self.texts[i].get_position()
             self.texts[i].set_position((oldx+x,oldy+y))
@@ -126,11 +138,11 @@ class Curve:
         linex = self.linePlot.get_xdata()
         liney = self.linePlot.get_ydata()
 
-        xf,yf = self.points['xs'][0],self.points['ys'][0]
+        xf,yf = self.points[0][0],self.points[1][0]
 
         for i in range(self.numberOfPoints-1):
-            self.points['xs'][i+1],self.points['ys'][i+1]  = self.scale_point(xf,yf,self.points['xs'][i+1],self.points['ys'][i+1],scale)
-            self.texts[i].set_position((self.points['xs'][i+1],self.points['ys'][i+1]))
+            self.points[0][i+1],self.points[1][i+1]  = self.scale_point(xf,yf,self.points[0][i+1],self.points[1][i+1],scale)
+            self.texts[i].set_position((self.points[0][i+1],self.points[1][i+1]))
 
         for i in range(self.accurancy-1):
             linex[i+1], liney[i+1] = self.scale_point(xf,yf,linex[i+1],liney[i+1],scale)
@@ -148,20 +160,45 @@ class Curve:
         liney = self.linePlot.get_ydata()
 
         for i in range(self.numberOfPoints):
-            self.points['xs'][i],self.points['ys'][i]  = self.rotate_points(self.points['xs'][i],self.points['ys'][i],angle,s,t)
-            self.texts[i].set_position((self.points['xs'][i],self.points['ys'][i]))
+            self.points[0][i],self.points[1][i]  = self.rotate_points(self.points[0][i],self.points[1][i],angle,s,t)
+            self.texts[i].set_position((self.points[0][i],self.points[1][i]))
 
         for i in range(self.accurancy):
             linex[i], liney[i] = self.rotate_points(linex[i],liney[i],angle,s,t)
 
         self.update_plots(linex,liney)
 
-    def find_point(self,x,y):
+    def split_curve(self,newCurve,xs1,ys1,xs2,ys2,x,y):
+        linex = self.linePlot.get_xdata()
+        liney = self.linePlot.get_ydata()
+        n = len(xs1)-1
+
+        self.points[0] = xs1
+        self.points[1] = ys1
+        self.numberOfPoints = len(xs1)
+
+        newCurve.texts = self.texts[n:]
+        self.texts = self.texts[:n]
+        self.texts.append(plt.text(x,y,self.numberOfPoints.__str__()))
+        self.texts[-1].set_visible(self.numbersVisble)
+        self.update_plots_extended()
+
+        self.paste_curve_settings(newCurve)
+        newCurve.points[0] = xs2
+        newCurve.points[1] = ys2
+        newCurve.numberOfPoints = len(xs2)
+
+        newCurve.texts = [plt.text(x,y,'1')] + newCurve.texts
+        newCurve.texts[0].set_visible(self.numbersVisble)
+        newCurve.update_numbers(1)
+        newCurve.update_plots_extended()
+
+
+    def find_point(self,x,y,xs,ys):
         minDistance = 100000000000000
         pointer = -1
-        xs = self.points['xs']
-        ys = self.points['ys']
-        for i in range(self.numberOfPoints):
+        n = len(xs)
+        for i in range(n):
             if (x-xs[i])**2 + (y-ys[i])**2 < minDistance:
                 minDistance = (x-xs[i])**2 + (y-ys[i])**2
                 pointer = i
@@ -176,21 +213,15 @@ class Curve:
         self.pointsPlot.remove()
         del self.pointsPlot
 
-    def split_curve(self,newCurve,x,y):
-        newCurve.width = self.width
-        newCurve.color = self.color
-        newCurve.type = self.curveType
-        xs1,ys1,xs2,ys2 = num.splitDict[self.curveType](self.points['xs'],self.points['ys'],x,y)
-
     def save_to_file(self,path):
         data = {}
         data['name'] = self.name
         data['width'] = self.width
-        data['type'] = self.curveType
+        data['type'] = Curve.curveType
         data['accurancy'] = self.accurancy
         data['color'] = self.color
-        data['pointsxs'] = self.points['xs']
-        data['pointsys'] = self.points['ys']
+        data['pointsxs'] = self.points[0]
+        data['pointsys'] = self.points[1]
 
         with open(path,'w') as ofile:
             json.dump(data,ofile)
@@ -212,14 +243,16 @@ class Curve:
         self.linePlot.set_visible(True)
 
     def show_numbers(self):
-        for i in range(self.numberOfPoints):
-            self.texts[i].set_visible(True)
-        self.numbersVisble = True
+        if not self.numbersVisble:
+            for i in range(self.numberOfPoints):
+                self.texts[i].set_visible(True)
+            self.numbersVisble = True
 
     def hide_numbers(self):
-        for i in range(self.numberOfPoints):
-            self.texts[i].set_visible(False)
-        self.numbersVisble = False
+        if self.numbersVisble:
+            for i in range(self.numberOfPoints):
+                self.texts[i].set_visible(False)
+            self.numbersVisble = False
 
     def set_working_accurancy(self):
         self.currentAccurancy = self.workingAccurancy
