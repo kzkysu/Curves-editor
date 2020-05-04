@@ -169,8 +169,6 @@ class Curve:
         self.update_plots(linex,liney)
 
     def split_curve(self,newCurve,xs1,ys1,xs2,ys2,x,y):
-        linex = self.linePlot.get_xdata()
-        liney = self.linePlot.get_ydata()
         n = len(xs1)-1
 
         self.points[0] = xs1
@@ -260,3 +258,17 @@ class Curve:
     def set_normal_accurancy(self):
         self.currentAccurancy = self.accurancy
         self.update_plots_extended()
+
+    def regular_nodes(self,n):
+        ts = []
+        for i in range(n):
+            ts.append(i/(n-1))
+
+        return ts
+
+    def chebyshev_nodes(self,n):
+        ts = []
+        for k in range(n):
+            ts.append(m.cos(m.pi*(k + 0.5)/n))
+
+        return ts
