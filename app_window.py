@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from curve_polygonal import PolygonalChain
 from curve_interpolation import PolynomialInterpolation
 from curve_nifs3 import NIFS3
+from curve_oifs3 import OIFS3
 from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget,CurvesTypesComboBox
 from app_canvas import AppCanvas
 from edit_curve_menu import EditCurveMenu
@@ -21,7 +22,7 @@ from points_menu import PointsMenu
 from curve_menu import CurveMenu
 
 class MainWindow(Gtk.ApplicationWindow):
-    curveTypes = {'polygonal chain':PolygonalChain,'polynomial interpolation':PolynomialInterpolation, 'NIFS3':NIFS3}
+    curveTypes = {'polygonal chain':PolygonalChain,'polynomial interpolation':PolynomialInterpolation, 'NIFS3':NIFS3, 'OIFS3':OIFS3}
 
     def __init__(self,application=None):
         super(MainWindow,self).__init__(application=application)
