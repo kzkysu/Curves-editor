@@ -21,7 +21,8 @@ class Curve:
         self.color = None
         self.width = None
         self.pointsVisible = True
-        self.numbersVisble = False
+        self.numbersVisible = False
+        self.visible = True 
 
     def load_from_file(self,path):
         try:
@@ -37,7 +38,7 @@ class Curve:
             self.texts = []
             for i in range(self.numberOfPoints):
                 self.texts.append(plt.text(self.points[0][i],self.points[1][i],i.__str__()))
-                self.texts[i].set_visible(self.numbersVisble)
+                self.texts[i].set_visible(self.numbersVisible)
             self.update_plots_extended()
 
         except:
@@ -80,7 +81,7 @@ class Curve:
         self.points[0].append(x)
         self.points[1].append(y)
         self.texts.append(plt.text(self.points[0][-1],self.points[1][-1],self.numberOfPoints.__str__()))
-        self.texts[-1].set_visible(self.numbersVisble)
+        self.texts[-1].set_visible(self.numbersVisible)
 
         self.update_plots_extended()
 
@@ -178,7 +179,7 @@ class Curve:
         newCurve.texts = self.texts[n:]
         self.texts = self.texts[:n]
         self.texts.append(plt.text(x,y,self.numberOfPoints.__str__()))
-        self.texts[-1].set_visible(self.numbersVisble)
+        self.texts[-1].set_visible(self.numbersVisible)
         self.update_plots_extended()
 
         self.paste_curve_settings(newCurve)
@@ -187,7 +188,7 @@ class Curve:
         newCurve.numberOfPoints = len(xs2)
 
         newCurve.texts = [plt.text(x,y,'1')] + newCurve.texts
-        newCurve.texts[0].set_visible(self.numbersVisble)
+        newCurve.texts[0].set_visible(self.numbersVisible)
         newCurve.update_numbers(1)
         newCurve.update_plots_extended()
 
@@ -229,28 +230,34 @@ class Curve:
         self.pointsVisible = False
 
     def show_points(self):
-        self.pointsPlot.set_visible(True)
-        self.pointsVisible = True
+        if self.visible:
+            self.pointsPlot.set_visible(True)
+            self.pointsVisible = True
 
     def hide_curve(self):
         self.pointsPlot.set_visible(False)
         self.linePlot.set_visible(False)
+        self.hide_numbers(temp=True)
+        self.visible = False
 
     def show_curve(self):
         self.pointsPlot.set_visible(self.pointsVisible)
         self.linePlot.set_visible(True)
+        if self.numbersVisible:
+            self.show_numbers(force=True)
+        self.visible = True
 
-    def show_numbers(self):
-        if not self.numbersVisble:
+    def show_numbers(self,force=False):
+        if self.visible and ( not self.numbersVisible or force ):
             for i in range(self.numberOfPoints):
                 self.texts[i].set_visible(True)
-            self.numbersVisble = True
+            self.numbersVisible = True
 
-    def hide_numbers(self):
-        if self.numbersVisble:
+    def hide_numbers(self,temp=False):
+        if self.numbersVisible:
             for i in range(self.numberOfPoints):
                 self.texts[i].set_visible(False)
-            self.numbersVisble = False
+            self.numbersVisible = temp
 
     def set_working_accurancy(self):
         self.currentAccurancy = self.workingAccurancy

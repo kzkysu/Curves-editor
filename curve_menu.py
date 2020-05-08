@@ -42,7 +42,7 @@ class CurveHBox(Gtk.HBox):
         self.splitCurveButton.set_image(image5)
         self.pack_start(self.splitCurveButton,False,False,0)
 
-        self.deleteCurveButton = Gtk.ToggleButton()
+        self.deleteCurveButton = Gtk.Button()
         self.deleteCurveButton.set_image(image6)
         self.pack_start(self.deleteCurveButton,False,False,0)
 

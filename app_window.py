@@ -1,8 +1,6 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk,Gio,GLib
-#from gi.repository import GObject
-#from gi.repository import GdkX11
 
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
