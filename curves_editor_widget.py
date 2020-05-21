@@ -2,8 +2,6 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
-import numerical_algorithm as num_alg
-
 class CurveWidget(Gtk.Box):
     def __init__(self,curve,radioButton,counter,radio_toggled_function,canvas):
         self.curve = curve
@@ -11,7 +9,7 @@ class CurveWidget(Gtk.Box):
         super().__init__()
        
         self.radioButton = Gtk.RadioButton.new_from_widget(radioButton)
-        self.toggleButton = Gtk.ToggleButton(label="Curve " + str(counter))
+        self.toggleButton = Gtk.ToggleButton(label=self.curve.curveType + ' ' + str(counter))
 
         self.radioButton.set_active(True)
         self.radioButton.connect("toggled",radio_toggled_function)

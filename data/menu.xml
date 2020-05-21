@@ -40,12 +40,28 @@
  <submenu>
    <attribute name="label" translatable="yes">View curve</attribute>
       <item>
+        <attribute name="action">app.showpoints</attribute>
+        <attribute name="label" translatable="yes">Show points</attribute>
+      </item>
+      <item>
         <attribute name="action">app.hidepoints</attribute>
         <attribute name="label" translatable="yes">Hide points</attribute>
       </item>
       <item>
         <attribute name="action">app.shownumbers</attribute>
         <attribute name="label" translatable="yes">Show numbers</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.hidenumbers</attribute>
+        <attribute name="label" translatable="yes">Hide numbers</attribute>
+      </item>
+            <item>
+        <attribute name="action">app.showhull</attribute>
+        <attribute name="label" translatable="yes">Show convex hull.</attribute>
+      </item>
+            <item>
+        <attribute name="action">app.hidehull</attribute>
+        <attribute name="label" translatable="yes">Hide convex hull.</attribute>
       </item>
  </submenu>
 </menu>

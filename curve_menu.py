@@ -21,6 +21,10 @@ class CurveHBox(Gtk.HBox):
         image5.set_from_file('data/split_curve.png')
         image6 = Gtk.Image()
         image6.set_from_file('data/delete_curve.png')
+        image7 = Gtk.Image()
+        image7.set_from_file('data/choose_color2.png')
+        image8 = Gtk.Image()
+        image8.set_from_file('data/choose_width.png')
 
         self.selectCurveButton = Gtk.ToggleButton()
         self.selectCurveButton.set_image(image1)
@@ -46,6 +50,14 @@ class CurveHBox(Gtk.HBox):
         self.deleteCurveButton.set_image(image6)
         self.pack_start(self.deleteCurveButton,False,False,0)
 
+        self.chooseColorButton = Gtk.Button()
+        self.chooseColorButton.set_image(image7)
+        self.pack_start(self.chooseColorButton,False,False,0)
+
+        self.changeWidthButton = Gtk.ToggleButton()
+        self.changeWidthButton.set_image(image8)
+        self.pack_start(self.changeWidthButton,False,False,0)
+
 class CurveMenu(Gtk.VBox):
     def __init__(self,appCanvas,activeCurve,curves,activeToggleButton,extraBox):
         super().__init__()
@@ -69,6 +81,8 @@ class CurveMenu(Gtk.VBox):
         self.basicMenu.moveCurveButton.connect("toggled", self.on_move_curve_button_toggled)
         self.basicMenu.resizeCurveButton.connect("toggled", self.on_resize_curve_button_toggled)
         self.basicMenu.rotateCurveButton.connect("toggled", self.on_rotate_curve_button_toggled)
+        self.basicMenu.chooseColorButton.connect("clicked", self.on_choose_color_button_clicked)
+        self.basicMenu.changeWidthButton.connect("toggled", self.on_change_width_button_toggled)
 
 
     def update_active_curve(self,activeCurve):
@@ -133,3 +147,22 @@ class CurveMenu(Gtk.VBox):
             self.canvas.mpl_disconnect(self.add_point_of_rotation_active)
             self.appCanvas.delete_point_of_rotation()
             self.canvas.draw_idle()
+
+    def on_choose_color_button_clicked(self,widget):
+        colorChooserDialog = Gtk.ColorChooserDialog()
+        stat = colorChooserDialog.run()
+        col = colorChooserDialog.get_rgba()
+        self.activeCurve.change_line_color(col.red,col.green,col.blue)
+        colorChooserDialog.destroy()
+
+    def on_change_width_button_toggled(self,widget):
+        if widget.get_active() == True:
+            self.set_active_widget(widget)
+            self.getScaleWidget = getScaleWidget(self.appCanvas.change_line_width)
+            self.appCanvas.set_getScaleWidget(self.getScaleWidget)
+            self.extraBox.add(self.getScaleWidget)
+            self.extraBox.show_all()
+        else:
+            self.getScaleWidget.destroy()
+            self.getScaleWidget = None
+            self.extraBox.show_all()

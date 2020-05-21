@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
-from curve import Curve
+from classes_dir.curve import Curve
 
 class PolygonalChain(Curve):
-    curveType = 'polygonal chain'
-    def __init__(self,pointsPlot,linePlot):
-        super().__init__(pointsPlot,linePlot)
+    curveType = 'Polygonal'
+    def __init__(self,pointsPlot,linePlot,convexHull):
+        super().__init__(pointsPlot,linePlot,convexHull)
 
     def calculate_function(self):
         def foo(numberOfPoints):

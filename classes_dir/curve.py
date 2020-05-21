@@ -1,3 +1,4 @@
+import matplotlib.colors
 import matplotlib.pyplot as plt
 import math as m
 import json
@@ -5,7 +6,7 @@ import json
 class Curve:
     counter = 0
     curveType = None
-    def __init__(self,pointsPlot,linePlot):
+    def __init__(self,linePlot,pointsPlot,convexHull):
         self.name = "Curve " + str(Curve.counter)
         self.accurancy = 10000
         self.workingAccurancy = 100
@@ -13,6 +14,7 @@ class Curve:
         Curve.counter += 1
         self.linePlot = linePlot[0]
         self.pointsPlot = pointsPlot[0]
+        self.convexHull = convexHull[0]
         self.texts = []
         self.points = [list(),list()]
         self.numberOfPoints = 0
@@ -24,14 +26,30 @@ class Curve:
         self.numbersVisible = False
         self.visible = True 
 
-    def load_from_file(self,path):
+    @staticmethod
+    def load_curves_data_from_file(path):
         try:
             with open(path,'r') as ifile:
                 data = json.load(ifile)
+        except:
+            print("Failed reading curve from file: " + path )
+        return data
+
+    @staticmethod
+    def get_curve_type_from_data(data):
+        try:
+            return data['type']
+        except:
+            print("The data from file is not valid.")
+            return None
+        
+
+    def set_curve_data(self,data):
+        try:
             self.name = data['name']
             self.accurancy = data['accurancy']
-            self.points = {'xs': data['pointsxs'],'ys': data['pointsys']}
-            Curve.curveType = data['type']
+            self.points[0] =  data['pointsxs']
+            self.points[1] =  data['pointsys']
             self.numberOfPoints = len(self.points[0])
             self.color = data['color']
             self.width = data['width']
@@ -40,9 +58,9 @@ class Curve:
                 self.texts.append(plt.text(self.points[0][i],self.points[1][i],i.__str__()))
                 self.texts[i].set_visible(self.numbersVisible)
             self.update_plots_extended()
-
         except:
-            print("Failed reading curve from file: " + path )
+            print("The data from file is not valid.")
+    
 
     '''def change_type(self,curveType):
         self.curveType = curveType
@@ -56,13 +74,16 @@ class Curve:
 
     def update_plots_extended(self):
         self.pointsPlot.set_data(self.points[0],self.points[1])
+        newhull = self.find_convex_hull(self.points[0],self.points[1])
+        self.convexHull.set_data(newhull[0],newhull[1])
         self.funcY = self.calculate_function()
         lxs,lys = self.funcY(self.currentAccurancy)
         self.linePlot.set_data(lxs,lys)
 
-    def update_plots(self,lxs,lys):
+    def update_plots(self,lxs,lys,cxs,cys):
         self.pointsPlot.set_data(self.points[0],self.points[1])
         self.linePlot.set_data(lxs,lys)
+        self.convexHull.set_data(cxs,cys)
 
     def update_numbers(self,startNumber):
         n = len(self.points[0])
@@ -125,10 +146,16 @@ class Curve:
 
         for i in range(self.accurancy):
             linex[i] += x
-        for i in range(self.accurancy):
             liney[i] += y
 
-        self.update_plots(linex,liney)
+        cxs,cys = self.convexHull.get_data()
+
+        n = len(cxs)
+        for i in range(n):
+            cxs[i] += x
+            cys[i] += y
+
+        self.update_plots(linex,liney,cxs,cys)
 
     def scale_point(self,xf,yf,x,y,scale):
         x = xf + (x-xf)*scale
@@ -148,11 +175,17 @@ class Curve:
         for i in range(self.accurancy-1):
             linex[i+1], liney[i+1] = self.scale_point(xf,yf,linex[i+1],liney[i+1],scale)
 
-        self.update_plots(linex,liney)
+        cxs,cys = self.convexHull.get_data()
+
+        n = len(cxs)
+        for i in range(n):
+            cxs[i],cxs[i] = self.scale_point(xf,yf,cxs[i],cys[i],scale)
+
+        self.update_plots(linex,liney,cxs,cys)
+
 
     def rotate_points(self,x,y,angle,s,t):
         return (x-s)*m.cos(angle) - (y-t)*m.sin(angle) + s, (x-s)*m.sin(angle) + (y-t)*m.cos(angle) + t
-
 
     def rotate_curve(self,angle,s,t):
         angle = m.radians(angle)
@@ -167,7 +200,14 @@ class Curve:
         for i in range(self.accurancy):
             linex[i], liney[i] = self.rotate_points(linex[i],liney[i],angle,s,t)
 
-        self.update_plots(linex,liney)
+        cxs,cys = self.convexHull.get_data()
+
+        n = len(cxs)
+        for i in range(n):
+            cxs[i],cxs[i] = self.rotate_points(cxs[i],cys[i],angle,s,t)
+
+        self.update_plots(linex,liney,cxs,cys)
+
 
     def split_curve(self,newCurve,xs1,ys1,xs2,ys2,x,y):
         n = len(xs1)-1
@@ -237,12 +277,14 @@ class Curve:
     def hide_curve(self):
         self.pointsPlot.set_visible(False)
         self.linePlot.set_visible(False)
+        self.convexHull.set_visible(False)
         self.hide_numbers(temp=True)
         self.visible = False
 
     def show_curve(self):
         self.pointsPlot.set_visible(self.pointsVisible)
         self.linePlot.set_visible(True)
+        self.convexHull.set_visible(True)
         if self.numbersVisible:
             self.show_numbers(force=True)
         self.visible = True
@@ -265,17 +307,81 @@ class Curve:
     def set_normal_accurancy(self):
         self.currentAccurancy = self.accurancy
         self.update_plots_extended()
-
+        
     def regular_nodes(self,n):
         ts = []
         for i in range(n):
             ts.append(i/(n-1))
-
         return ts
 
     def chebyshev_nodes(self,n):
         ts = []
-        for k in range(n):
-            ts.append(m.cos(m.pi*(k + 0.5)/n))
-
+        for k in range(1,n+1):
+            ts.append(0.5 + 0.5*m.cos(m.pi*(2*k -1)/(2*n)))
         return ts
+
+    @staticmethod
+    def at_right(ax,ay,bx,by,cx,cy):
+        return (cx-bx)*(ay-by) - (ax-bx)*(cy-by) < 0
+
+    @staticmethod
+    def pseudoangle(x,y):
+        if x != 0 or y != 0:
+            return x / (x**2 + y**2)
+        return 2
+
+    @staticmethod
+    def find_convex_hull(xs,ys):
+        minid = 0
+        aux = []
+        n = len(xs)
+        stack = [[],[]]
+        if n<3:
+            return stack
+        for i in range(n):
+            if ys[i] < ys[minid] or (ys[i] == ys[minid] and xs[i] < xs[minid]):
+                minid = i
+        sx = xs[minid]
+        sy = ys[minid]
+        for i in range(n):
+            xs[i] -= sx
+            ys[i] -= sy
+            aux.append((Curve.pseudoangle(xs[i],ys[i]),i))
+        
+        aux.sort(reverse=True)
+
+        stack[0].append(xs[aux[0][1]])
+        stack[1].append(ys[aux[0][1]])
+        stack[0].append(xs[aux[1][1]])
+        stack[1].append(ys[aux[1][1]])
+
+        i = 2
+        while i < n:
+            j = aux[i][1]
+            while len(stack[0]) > 1 and Curve.at_right(xs[j],ys[j],stack[0][-2],stack[1][-2],stack[0][-1],stack[1][-1]):
+                del stack[0][-1]
+                del stack[1][-1]
+            stack[0].append(xs[j])
+            stack[1].append(ys[j])
+            i += 1
+
+        for i in range(n):
+            xs[i] += sx
+            ys[i] += sy
+
+        n = len(stack[0])
+        for i in range(n):
+            stack[0][i] += sx
+            stack[1][i] += sy
+        stack[0].append(stack[0][0])
+        stack[1].append(stack[1][0])
+
+        return stack
+
+    def change_line_color(self,r,g,b):
+        color = matplotlib.colors.to_hex((r,g,b))
+        self.linePlot.set_color(color)
+
+    def change_line_width(self,scale):
+        width = self.linePlot.get_linewidth()
+        self.linePlot.set_linewidth(width*scale)

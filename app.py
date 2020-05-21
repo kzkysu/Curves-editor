@@ -24,8 +24,14 @@ class App(Gtk.Application):
         self.add_gio_action('export',self.export_to_png)
         self.add_gio_action('hidepointsall',self.on_hidepointsall_clicked)
         self.add_gio_action('showpointsall',self.on_showpointsall_clicked)
+        self.add_gio_action('showpoints',self.on_showpoints_clicked)
+        self.add_gio_action('hidepoints',self.on_hidepoints_clicked)
+        self.add_gio_action('shownumbers',self.on_shownumbers_clicked)
+        self.add_gio_action('hidenumbers',self.on_hidenumbers_clicked)
+        self.add_gio_action('showhull',self.on_showhull_clicked)
+        self.add_gio_action('hidehull',self.on_hidehull_clicked)
 
-        hidePointsAction = Gio.SimpleAction.new_stateful("hidepoints", None,
+        '''hidePointsAction = Gio.SimpleAction.new_stateful("hidepoints", None,
                                            GLib.Variant.new_boolean(False))
         hidePointsAction.connect("change-state", self.on_hidepoints_toggled)
         self.add_action(hidePointsAction)
@@ -33,7 +39,7 @@ class App(Gtk.Application):
         showNumbersAction = Gio.SimpleAction.new_stateful("shownumbers", None,
                                            GLib.Variant.new_boolean(False))
         showNumbersAction.connect("change-state", self.on_shownumbers_toggled)
-        self.add_action(showNumbersAction)
+        self.add_action(showNumbersAction)'''
 
 
     def do_activate(self):
@@ -108,7 +114,7 @@ class App(Gtk.Application):
             
         dialog.destroy()
 
-    def on_hidepoints_toggled(self,action,value):
+    '''def on_hidepoints_toggled(self,action,value):
         action.set_state(value)
         if value.get_boolean():
             self.window.hide_points()
@@ -120,13 +126,30 @@ class App(Gtk.Application):
         if value.get_boolean():
             self.window.show_numbers()
         else:
-            self.window.hide_numbers()
-
+            self.window.hide_numbers()'''
     def on_hidepointsall_clicked(self,action,value):
         self.window.hide_points_all()
 
     def on_showpointsall_clicked(self,action,value):
         self.window.show_points_all()
+
+    def on_showpoints_clicked(self,action,value):
+        self.window.show_points()
+
+    def on_hidepoints_clicked(self,action,value):
+        self.window.hide_points()
+    
+    def on_shownumbers_clicked(self,action,value):
+        self.window.show_numbers()
+
+    def on_hidenumbers_clicked(self,action,value):
+        self.window.hide_numbers()
+
+    def on_showhull_clicked(self,action,value):
+        self.window.show_hull()
+
+    def on_hidehull_clicked(self,action,value):
+        self.window.hide_hull()
 
     def on_change_active_curve(self,points_visible):
         if points_visible:

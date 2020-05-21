@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
-from curve import Curve
+from classes_dir.curve import Curve
 import numpy as np
 
 class OIFS3(Curve):
     curveType = 'OIFS3'
-    def __init__(self,pointsPlot,linePlot):
-        super().__init__(pointsPlot,linePlot)
+    def __init__(self,pointsPlot,linePlot,convexHull):
+        super().__init__(pointsPlot,linePlot,convexHull)
 
     def interpolate(self,xs,ys):
         n = len(xs)

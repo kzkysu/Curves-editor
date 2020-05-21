@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
-import curve
+from classes_dir.curve import Curve
 
-class PolynomialInterpolation(curve.Curve):
-    curveType = 'polynomial interpolation'
-    def __init__(self,pointsPlot,linePlot):
-        super().__init__(pointsPlot,linePlot)
+class PolynomialInterpolation(Curve):
+    curveType = 'Polynomial'
+    def __init__(self,pointsPlot,linePlot,convexHull):
+        super().__init__(pointsPlot,linePlot,convexHull)
 
     def interpolate(self,xs,ys):
         def foo(t):
@@ -15,7 +15,6 @@ class PolynomialInterpolation(curve.Curve):
             a = [[1]]
             for i in range(n+1):
                 a[0].append(0)
-            n = len(xs)-1 
             for i in range(1,n+1):
                 a.append([])
                 for j in range(i):
@@ -40,9 +39,8 @@ class PolynomialInterpolation(curve.Curve):
                 return [],[]
             lxs = []
             lys = []
-            ts = []
-            for i in range(n):
-                ts.append(i/(n-1))
+            ts = self.chebyshev_nodes(n)
+            #ts = self.regular_nodes(n)
 
             Lnx = self.interpolate(ts,self.points[0])
             Lny = self.interpolate(ts,self.points[1])

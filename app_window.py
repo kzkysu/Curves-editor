@@ -8,19 +8,15 @@ from matplotlib import axes
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-from curve_polygonal import PolygonalChain
-from curve_interpolation import PolynomialInterpolation
-from curve_nifs3 import NIFS3
-from curve_oifs3 import OIFS3
+import classes
+
 from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget,CurvesTypesComboBox
 from app_canvas import AppCanvas
-from edit_curve_menu import EditCurveMenu
-from edit_points_menu import EditPointsMenu
 from points_menu import PointsMenu
 from curve_menu import CurveMenu
 
 class MainWindow(Gtk.ApplicationWindow):
-    curveTypes = {'polygonal chain':PolygonalChain,'polynomial interpolation':PolynomialInterpolation, 'NIFS3':NIFS3, 'OIFS3':OIFS3}
+    curveTypes = classes.curveTypes
 
     def __init__(self,application=None):
         super(MainWindow,self).__init__(application=application)
@@ -36,7 +32,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.pointOfRotation = None
         self.getAngleWidget = None
         self.getScaleWidget = None
-        self.editCurveMenu = None
+        #self.editCurveMenu = None
         #self.editPointsMenu = None
         self.pointsVisible = True
         self.numbersVisible = False
@@ -164,10 +160,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.add_curve(MainWindow.curveTypes[self.chooseTypeComboBox.get_current_type()])
 
     def add_curve(self,CurveClass):
-        newCurve = CurveClass(self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
-            self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)))
+        newCurve = CurveClass(self.ax.plot([],[],picker=5,label="line" + str(self.curvesCounter)),
+            self.ax.plot([],[],'o',picker=5,label="points" + str(self.curvesCounter)),
+            self.ax.plot([],[],'--'))
         newCurveWidget = CurveWidget(newCurve,self.radioButton,self.curvesCounter,self.set_active_curve_from_button,self.canvas)
-
+        
         self.activeCurveWidget = newCurveWidget
         self.set_active_curve()
 
@@ -208,9 +205,12 @@ class MainWindow(Gtk.ApplicationWindow):
             self.activeCurve.save_to_file(path)
 
     def load_curve(self,path):
-        self.add_curve(None)
-        self.activeCurve.load_from_file(path)
-        self.canvas.draw_idle()
+        data = classes.Curve.load_curves_data_from_file(path)
+        curveType = classes.curveTypes[classes.Curve.get_curve_type_from_data(data)]
+        if curveType != None:
+            self.add_curve(curveType)
+            self.activeCurve.set_curve_data(data)
+            self.canvas.draw_idle()
 
     def save_fig_to_png(self,path):
         plt.axis('off')

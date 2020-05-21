@@ -8,8 +8,6 @@ from matplotlib import axes
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-from curve import Curve
-
 class AppCanvas():
     def __init__(self):
         self.curvesCounter = 0
@@ -20,7 +18,8 @@ class AppCanvas():
 
         fig = plt.figure(figsize=[9, 6], dpi=100,)
         self.ax = fig.add_subplot()
-        plt.axis([0,300,0,200],'scaled')
+        #plt.axis([0,300,0,200],'scaled')
+        plt.axis([0,300,0,200])
 
         self.canvas = FigureCanvas(fig)
 
@@ -67,6 +66,20 @@ class AppCanvas():
             self.canvas.draw_idle()
 
     def resize_curve(self,event):
+        scale = self.getScaleWidget.get_scale_value()
+        self.getScaleWidget.reset_scale_value()
+        if self.activeCurve != None:
+            self.activeCurve.resize_curve(scale/100.0)
+        self.canvas.draw_idle()
+
+    def change_line_width(self,event):
+        scale = self.getScaleWidget.get_scale_value()
+        self.getScaleWidget.reset_scale_value()
+        if self.activeCurve != None:
+            self.activeCurve.change_line_width(scale/100.0)
+        self.canvas.draw_idle()
+
+    def change_curve(self,event):
         scale = self.getScaleWidget.get_scale_value()
         self.getScaleWidget.reset_scale_value()
         if self.activeCurve != None:
