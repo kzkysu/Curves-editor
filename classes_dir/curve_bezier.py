@@ -33,4 +33,9 @@ class Bezier(Curve):
         return foo
 
     def calculate_split(self,x,y,newCurve):
-        pass
+        xs1 = []
+        ys1 = []
+        xs2 = []
+        ys2 = []
+
+        

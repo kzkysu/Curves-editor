@@ -15,6 +15,7 @@ class Curve:
         self.linePlot = linePlot[0]
         self.pointsPlot = pointsPlot[0]
         self.convexHull = convexHull[0]
+        self.convexHull.set_visible(False)
         self.texts = []
         self.points = [list(),list()]
         self.numberOfPoints = 0
@@ -24,6 +25,7 @@ class Curve:
         self.width = None
         self.pointsVisible = True
         self.numbersVisible = False
+        self.hullVisible = False
         self.visible = True 
 
     @staticmethod
@@ -179,7 +181,7 @@ class Curve:
 
         n = len(cxs)
         for i in range(n):
-            cxs[i],cxs[i] = self.scale_point(xf,yf,cxs[i],cys[i],scale)
+            cxs[i],cys[i] = self.scale_point(xf,yf,cxs[i],cys[i],scale)
 
         self.update_plots(linex,liney,cxs,cys)
 
@@ -204,7 +206,7 @@ class Curve:
 
         n = len(cxs)
         for i in range(n):
-            cxs[i],cxs[i] = self.rotate_points(cxs[i],cys[i],angle,s,t)
+            cxs[i],cys[i] = self.rotate_points(cxs[i],cys[i],angle,s,t)
 
         self.update_plots(linex,liney,cxs,cys)
 
@@ -273,6 +275,15 @@ class Curve:
         if self.visible:
             self.pointsPlot.set_visible(True)
             self.pointsVisible = True
+
+    def hide_hull(self):
+        self.convexHull.set_visible(False)
+        self.hullVisible = False
+
+    def show_hull(self):
+        if self.visible:
+            self.convexHull.set_visible(True)
+            self.hullVisible = True
 
     def hide_curve(self):
         self.pointsPlot.set_visible(False)
@@ -350,13 +361,15 @@ class Curve:
         
         aux.sort(reverse=True)
 
+        aux.append(aux[0])
+
         stack[0].append(xs[aux[0][1]])
         stack[1].append(ys[aux[0][1]])
         stack[0].append(xs[aux[1][1]])
         stack[1].append(ys[aux[1][1]])
 
         i = 2
-        while i < n:
+        while i < n+1:
             j = aux[i][1]
             while len(stack[0]) > 1 and Curve.at_right(xs[j],ys[j],stack[0][-2],stack[1][-2],stack[0][-1],stack[1][-1]):
                 del stack[0][-1]
@@ -373,8 +386,6 @@ class Curve:
         for i in range(n):
             stack[0][i] += sx
             stack[1][i] += sy
-        stack[0].append(stack[0][0])
-        stack[1].append(stack[1][0])
 
         return stack
 

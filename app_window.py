@@ -36,6 +36,7 @@ class MainWindow(Gtk.ApplicationWindow):
         #self.editPointsMenu = None
         self.pointsVisible = True
         self.numbersVisible = False
+        self.hullVisible = False
         self.activeToggleButton = []
 
         self.set_icon_from_file("data/icon.png")
@@ -244,6 +245,18 @@ class MainWindow(Gtk.ApplicationWindow):
             self.activeCurve.hide_numbers()
             self.canvas.draw_idle()
             self.numbersVisible = False
+
+    def show_hull(self):
+        if self.activeCurve != None:
+            self.activeCurve.show_hull()
+            self.canvas.draw_idle()
+            self.hullVisible = True
+
+    def hide_hull(self):
+        if self.activeCurve != None:
+            self.activeCurve.hide_hull()
+            self.canvas.draw_idle()
+            self.hullVisible = False
 
     def hide_points_all(self):
         for key in self.curves:
