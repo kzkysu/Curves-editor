@@ -6,6 +6,10 @@ class OIFS3(Curve):
     curveType = 'OIFS3'
     def __init__(self,pointsPlot,linePlot,convexHull):
         super().__init__(pointsPlot,linePlot,convexHull)
+        self.mx = None
+        self.my = None
+        self.hx = None
+        self.hy = None
 
     def interpolate(self,xs,ys):
         n = len(xs)
@@ -53,37 +57,41 @@ class OIFS3(Curve):
         m[n] = m[1]
         return m,h
 
+    def funcY(self):
+        n = len(self.points[0])
+        if n<2:
+            return [],[]
+        ts = self.regular_nodes(n)
+        mx,hx,my,hy = self.mx,self.hx,self.my,self.hy
+        lxs = []
+        lys = []
 
-    def calculate_function(self):
-        def foo(numberOfPoints):
-            n = len(self.points[0])
-            if n<2:
-                return [],[]
+        k = 1
+        xs = self.points[0]
+        ys = self.points[1]
+        for i in range(self.currentAccurancy):
+            x = i/(self.currentAccurancy-1)
+            if x > ts[k]:
+                k += 1
+            sx = (1/hx[k])*(1/6*mx[k-1]*(ts[k]-x)**3
+                + (1/6)*mx[k]*(x - ts[k-1])**3 
+                + (xs[k-1] - (1/6)*mx[k-1]*hx[k]**2)*(ts[k]-x)
+                + (xs[k]- (1/6)*mx[k]*hx[k]**2)*(x-ts[k-1]))
+            sy = (1/hy[k])*(1/6*my[k-1]*(ts[k]-x)**3
+                + (1/6)*my[k]*(x - ts[k-1])**3 
+                + (ys[k-1] - (1/6)*my[k-1]*hy[k]**2)*(ts[k]-x)
+                + (ys[k]- (1/6)*my[k]*hy[k]**2)*(x-ts[k-1])) 
+            lxs.append(sx)
+            lys.append(sy)
+        return lxs,lys
+
+
+    def calculate_function(self,flag):
+        n = len(self.points[0])
+        if n>=2:
             ts = self.regular_nodes(n)
-            mx,hx = self.interpolate(ts,self.points[0])
-            my,hy = self.interpolate(ts,self.points[1])
-            lxs = []
-            lys = []
-
-            k = 1
-            xs = self.points[0]
-            ys = self.points[1]
-            for i in range(numberOfPoints):
-                x = i/(numberOfPoints-1)
-                if x > ts[k]:
-                    k += 1
-                sx = (1/hx[k])*(1/6*mx[k-1]*(ts[k]-x)**3
-                 + (1/6)*mx[k]*(x - ts[k-1])**3 
-                 + (xs[k-1] - (1/6)*mx[k-1]*hx[k]**2)*(ts[k]-x)
-                 + (xs[k]- (1/6)*mx[k]*hx[k]**2)*(x-ts[k-1]))
-                sy = (1/hy[k])*(1/6*my[k-1]*(ts[k]-x)**3
-                 + (1/6)*my[k]*(x - ts[k-1])**3 
-                 + (ys[k-1] - (1/6)*my[k-1]*hy[k]**2)*(ts[k]-x)
-                 + (ys[k]- (1/6)*my[k]*hy[k]**2)*(x-ts[k-1])) 
-                lxs.append(sx)
-                lys.append(sy)
-            return lxs,lys
-        return foo
+            self.mx,self.hx = self.interpolate(ts,self.points[0])
+            self.my,self.hy = self.interpolate(ts,self.points[1])
 
     def calculate_split(self,x,y,newCurve):
         linex = self.linePlot.get_xdata()

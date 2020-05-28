@@ -6,23 +6,24 @@ class PolygonalChain(Curve):
     def __init__(self,pointsPlot,linePlot,convexHull):
         super().__init__(pointsPlot,linePlot,convexHull)
 
-    def calculate_function(self):
-        def foo(numberOfPoints):
-            i = 0 
-            n = len(self.points[0])
-            if n < 2:
-                return [],[]
-            m = int(numberOfPoints/(n-1))
-            lxs = []
-            lys = []
-            for i in range(n-1):
-                if i == n-2:
-                    m = numberOfPoints - m*(n-2)
-                for j in range(m):
-                    lxs.append(self.points[0][i] + (j+1)/m * (self.points[0][i+1] - self.points[0][i]))
-                    lys.append(self.points[1][i] + (j+1)/m * (self.points[1][i+1] - self.points[1][i]))
-            return lxs,lys
-        return foo
+    def funcY(self):
+        i = 0 
+        n = len(self.points[0])
+        if n < 2:
+            return [],[]
+        m = int(self.currentAccurancy/(n-1))
+        lxs = []
+        lys = []
+        for i in range(n-1):
+            if i == n-2:
+                m = self.currentAccurancy - m*(n-2)
+            for j in range(m):
+                lxs.append(self.points[0][i] + (j+1)/m * (self.points[0][i+1] - self.points[0][i]))
+                lys.append(self.points[1][i] + (j+1)/m * (self.points[1][i+1] - self.points[1][i]))
+        return lxs,lys
+
+    def calculate_function(self,flag):
+        pass
 
     def calculate_split(self,x,y,newCurve):
         linex = self.linePlot.get_xdata()

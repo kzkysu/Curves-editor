@@ -71,12 +71,15 @@ class CurveMenu(Gtk.VBox):
         self.pointOfRotation = None
         self.getAngleWidget = None
         self.getScaleWidget = None
+        self.extraMenu = None
 
         self.extraBox = extraBox
+        self.mainHBox = Gtk.HBox()
+        self.add(self.mainHBox)
         self.activeToggleButton = activeToggleButton
 
         self.basicMenu = CurveHBox()
-        self.add(self.basicMenu)
+        self.mainHBox.add(self.basicMenu)
 
         self.basicMenu.moveCurveButton.connect("toggled", self.on_move_curve_button_toggled)
         self.basicMenu.resizeCurveButton.connect("toggled", self.on_resize_curve_button_toggled)
@@ -86,7 +89,22 @@ class CurveMenu(Gtk.VBox):
 
 
     def update_active_curve(self,activeCurve):
+        if self.extraMenu != None:
+            self.mainHBox.remove(self.extraMenu)
+            self.extraMenu = None
+
         self.activeCurve = activeCurve
+
+        if activeCurve != None and activeCurve.__class__.extraMenu != None:
+            self.extraMenu = activeCurve.__class__.extraMenu
+            self.extraMenu.activate(activeCurve)
+            self.mainHBox.add(self.extraMenu)
+            for b in self.extraMenu.bttns:
+                btn,f,action = b
+                btn.connect(action,lambda widget: self.on_button_clicked_template(widget,f))
+
+        self.show_all()
+
 
     def destroy_menu(self):
         self.appCanvas.delete_point_of_rotation()
@@ -166,3 +184,14 @@ class CurveMenu(Gtk.VBox):
             self.getScaleWidget.destroy()
             self.getScaleWidget = None
             self.extraBox.show_all()
+
+    def on_button_toggled_template(self,widget,f):
+        if widget.get_active() == True:
+            f(widget,self.canvas)
+            self.canvas.draw_idle()
+        else:
+            self.canvas.draw_idle()
+
+    def on_button_clicked_template(self,widget,f):
+            f(widget,self.canvas)
+            self.canvas.draw_idle()

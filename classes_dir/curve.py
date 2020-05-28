@@ -6,10 +6,11 @@ import json
 class Curve:
     counter = 0
     curveType = None
+    extraMenu = None
     def __init__(self,linePlot,pointsPlot,convexHull):
         self.name = "Curve " + str(Curve.counter)
         self.accurancy = 10000
-        self.workingAccurancy = 100
+        self.workingAccurancy = 200
         self.currentAccurancy = self.accurancy
         Curve.counter += 1
         self.linePlot = linePlot[0]
@@ -20,7 +21,6 @@ class Curve:
         self.points = [list(),list()]
         self.numberOfPoints = 0
         self.activePoint = None
-        self.funcY = None
         self.color = None
         self.width = None
         self.pointsVisible = True
@@ -55,10 +55,7 @@ class Curve:
             self.numberOfPoints = len(self.points[0])
             self.color = data['color']
             self.width = data['width']
-            self.texts = []
-            for i in range(self.numberOfPoints):
-                self.texts.append(plt.text(self.points[0][i],self.points[1][i],i.__str__()))
-                self.texts[i].set_visible(self.numbersVisible)
+            self.set_numbers()
             self.update_plots_extended()
         except:
             print("The data from file is not valid.")
@@ -74,18 +71,19 @@ class Curve:
     def calculate_function(self):
         pass
 
-    def update_plots_extended(self):
+    def update_plots_extended(self,flag=None):
         self.pointsPlot.set_data(self.points[0],self.points[1])
         newhull = self.find_convex_hull(self.points[0],self.points[1])
         self.convexHull.set_data(newhull[0],newhull[1])
-        self.funcY = self.calculate_function()
-        lxs,lys = self.funcY(self.currentAccurancy)
+        self.calculate_function(flag)
+        lxs,lys = self.funcY()
         self.linePlot.set_data(lxs,lys)
 
     def update_plots(self,lxs,lys,cxs,cys):
         self.pointsPlot.set_data(self.points[0],self.points[1])
         self.linePlot.set_data(lxs,lys)
         self.convexHull.set_data(cxs,cys)
+
 
     def update_numbers(self,startNumber):
         n = len(self.points[0])
@@ -106,7 +104,7 @@ class Curve:
         self.texts.append(plt.text(self.points[0][-1],self.points[1][-1],self.numberOfPoints.__str__()))
         self.texts[-1].set_visible(self.numbersVisible)
 
-        self.update_plots_extended()
+        self.update_plots_extended(flag="added_point")
 
     def delete_point(self,x,y):
         i = self.find_point(x,y,self.points[0],self.points[1])
@@ -146,7 +144,7 @@ class Curve:
         liney = self.linePlot.get_ydata()
 
 
-        for i in range(self.accurancy):
+        for i in range(len(linex)):
             linex[i] += x
             liney[i] += y
 
@@ -172,9 +170,9 @@ class Curve:
 
         for i in range(self.numberOfPoints-1):
             self.points[0][i+1],self.points[1][i+1]  = self.scale_point(xf,yf,self.points[0][i+1],self.points[1][i+1],scale)
-            self.texts[i].set_position((self.points[0][i+1],self.points[1][i+1]))
+            self.texts[i+1].set_position((self.points[0][i+1],self.points[1][i+1]))
 
-        for i in range(self.accurancy-1):
+        for i in range(len(linex)-1):
             linex[i+1], liney[i+1] = self.scale_point(xf,yf,linex[i+1],liney[i+1],scale)
 
         cxs,cys = self.convexHull.get_data()
@@ -199,7 +197,7 @@ class Curve:
             self.points[0][i],self.points[1][i]  = self.rotate_points(self.points[0][i],self.points[1][i],angle,s,t)
             self.texts[i].set_position((self.points[0][i],self.points[1][i]))
 
-        for i in range(self.accurancy):
+        for i in range(len(linex)):
             linex[i], liney[i] = self.rotate_points(linex[i],liney[i],angle,s,t)
 
         cxs,cys = self.convexHull.get_data()
@@ -209,6 +207,15 @@ class Curve:
             cxs[i],cys[i] = self.rotate_points(cxs[i],cys[i],angle,s,t)
 
         self.update_plots(linex,liney,cxs,cys)
+
+    def set_numbers(self):
+        n = len(self.texts)
+        for i in range(n):
+            self.texts[-1].remove()
+            del self.texts[-1]
+        for i in range(self.numberOfPoints):
+            self.texts.append(plt.text(self.points[0][i],self.points[1][i],i.__str__()))
+            self.texts[i].set_visible(self.numbersVisible)
 
 
     def split_curve(self,newCurve,xs1,ys1,xs2,ys2,x,y):
@@ -258,7 +265,7 @@ class Curve:
         data = {}
         data['name'] = self.name
         data['width'] = self.width
-        data['type'] = Curve.curveType
+        data['type'] = self.curveType
         data['accurancy'] = self.accurancy
         data['color'] = self.color
         data['pointsxs'] = self.points[0]
@@ -317,7 +324,7 @@ class Curve:
 
     def set_normal_accurancy(self):
         self.currentAccurancy = self.accurancy
-        self.update_plots_extended()
+        self.update_plots_extended(flag='change_accurancy')
         
     def regular_nodes(self,n):
         ts = []
@@ -338,7 +345,7 @@ class Curve:
     @staticmethod
     def pseudoangle(x,y):
         if x != 0 or y != 0:
-            return x / (x**2 + y**2)
+            return x / (x**2 + y**2)**(1/2)
         return 2
 
     @staticmethod
@@ -350,8 +357,9 @@ class Curve:
         if n<3:
             return stack
         for i in range(n):
-            if ys[i] < ys[minid] or (ys[i] == ys[minid] and xs[i] < xs[minid]):
+            if ys[i] < ys[minid] or (ys[i] == ys[minid] and xs[i] > xs[minid]):
                 minid = i
+
         sx = xs[minid]
         sy = ys[minid]
         for i in range(n):
