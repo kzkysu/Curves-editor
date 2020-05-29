@@ -98,5 +98,20 @@ class getScaleWidget(Gtk.Grid):
 
     def reset_scale_value(self):
         self.scale.set_value(100)
+    
+class AnimationModeBox(Gtk.Box):
+    def __init__(self,path,frameName,savefig):
+        super().__init__()
+        self.n = 0
+        self.frameName = frameName
+        self.path = path
+        self.savefig = savefig
+        frameButton = Gtk.Button("Frame")
+        self.add(frameButton)
+        frameButton.connect("clicked",self.make_frame)
+
+    def make_frame(self,widget):
+        self.savefig(self.path + '/' + self.frameName + '_' + str(self.n))
+        self.n += 1
 
 

@@ -5,6 +5,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk,Gio,GLib
 
 from app_window import MainWindow
+import animation_maker as anim
 
 with open("data/menu.xml",'r') as menufile:
     MENU_XML = menufile.read()
@@ -22,6 +23,7 @@ class App(Gtk.Application):
         self.add_gio_action('saveas',self.save_file_as)
         self.add_gio_action('load',self.load_json)
         self.add_gio_action('export',self.export_to_png)
+        self.add_gio_action('exportanimation',self.make_gif)
         self.add_gio_action('hidepointsall',self.on_hidepointsall_clicked)
         self.add_gio_action('showpointsall',self.on_showpointsall_clicked)
         self.add_gio_action('showpoints',self.on_showpoints_clicked)
@@ -154,6 +156,9 @@ class App(Gtk.Application):
     def on_change_active_curve(self,points_visible):
         if points_visible:
             pass
+
+    def make_gif(self,action,userData):
+        anim.make_gif_dialog(self.window,action,userData)
 
 
 if __name__ == "__main__":

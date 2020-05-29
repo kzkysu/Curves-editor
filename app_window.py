@@ -2,6 +2,9 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk,Gio,GLib
 
+from datetime import datetime
+import os
+
 from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
 
 from matplotlib import axes
@@ -10,7 +13,7 @@ import matplotlib.pyplot as plt
 
 import classes
 
-from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget,CurvesTypesComboBox
+from curves_editor_widget import CurveWidget,GetAngleWidget,getScaleWidget,CurvesTypesComboBox,AnimationModeBox
 from app_canvas import AppCanvas
 from points_menu import PointsMenu
 from curve_menu import CurveMenu
@@ -64,6 +67,18 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chooseTypeComboBox = CurvesTypesComboBox(list(MainWindow.curveTypes.keys()))
         addCurveBox.pack_start(self.chooseTypeComboBox,False,False,0)
 
+        self.animationBox = Gtk.Box()
+        mainOptionsHBox.pack_start(self.animationBox,False,False,0)
+
+        self.animationButton = Gtk.ToggleButton(label="Animation mode")
+        self.animationButton.connect("toggled", self.animation_toggled)
+        self.animationBox.pack_start(self.animationButton,False,False,0)
+
+        self.animationEntry = Gtk.Entry()
+        self.animationEntry.connect("activate",lambda widget: self.animationButton.set_active(True))
+        self.animationBox.pack_start(self.animationEntry,False,False,0)
+        self.connect("key-press-event",self.make_frame_by_space)
+
         self.extraBox = Gtk.Box()
         mainOptionsHBox.pack_start(self.extraBox,False,False,0)
 
@@ -89,7 +104,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.canvas = self.appCanvas.get_canvas()
         sw.add(self.canvas)
 
-        self.editCurveMenu = CurveMenu(self.appCanvas,self.activeCurve,self.curves,self.activeToggleButton,self.extraBox)
+        self.editCurveMenu = CurveMenu(self.appCanvas,self.activeCurve,self.curves,self.activeToggleButton,self.emptyHBox)
         self.editorGrid.attach(self.editCurveMenu,0,2,1,2)
 
         self.editCurveMenu.basicMenu.selectCurveButton.connect("toggled", self.on_select_curve_button_toggled)
@@ -105,6 +120,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.ax = self.appCanvas.get_ax()
 
         self.show_all()
+
+    def make_frame_by_space(self,widget,key):
+        if key.keyval == 102  and self.animationModeBox != None:
+            self.animationModeBox.make_frame(widget)
 
     def on_click(self,event):
         event.artist.remove()
@@ -267,3 +286,24 @@ class MainWindow(Gtk.ApplicationWindow):
         for key in self.curves:
             self.curves[key].get_curve().show_points()
         self.canvas.draw_idle()
+
+    def animation_toggled(self,widget):
+        if widget.get_active():
+            frameName = self.animationEntry.get_text()
+            if frameName == '':
+                frameName = str(datetime.now())
+                print(frameName)
+            path = os.getcwd() + "/animation/" + frameName 
+            try:
+                os.mkdir(path)
+                self.animationModeBox = AnimationModeBox(path,frameName,self.save_fig_to_png)
+                self.animationBox.add(self.animationModeBox)
+                self.animationBox.show_all()
+            except:
+                print("Error during creating animation directory")
+
+        else:
+            if self.animationModeBox != AnimationModeBox:
+                self.animationModeBox.destroy()
+                self.animationModeBox = None
+                self.animationBox.show_all()
