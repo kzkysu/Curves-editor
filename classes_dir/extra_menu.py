@@ -5,7 +5,6 @@ from gi.repository import Gtk
 class ExtraMenu(Gtk.Box):
     def __init__(self):
         super().__init__()
-        self.bttns = []
 
-    def activate(self,activeCurve):
+    def activate(self,activeCurve,canvas,set_active_widget):
         pass

@@ -97,11 +97,14 @@ class CurveMenu(Gtk.VBox):
 
         if activeCurve != None and activeCurve.__class__.extraMenu != None:
             self.extraMenu = activeCurve.__class__.extraMenu
-            self.extraMenu.activate(activeCurve)
+            self.extraMenu.activate(activeCurve,self.canvas,self.set_active_widget)
             self.mainHBox.add(self.extraMenu)
+            '''lmbs = []
             for b in self.extraMenu.bttns:
                 btn,f,action = b
-                btn.connect(action,lambda widget: self.on_button_clicked_template(widget,f))
+                lmbs.append(lambda widget: self.on_button_clicked_template(widget,b[1]))
+                print(b,lmbs[-1])
+                b[0].connect(action,lmbs[-1])'''
 
         self.show_all()
 
@@ -134,7 +137,7 @@ class CurveMenu(Gtk.VBox):
             self.set_active_widget(widget)
             self.getScaleWidget = getScaleWidget(self.appCanvas.resize_curve)
             self.appCanvas.set_getScaleWidget(self.getScaleWidget)
-            self.extraBox.add(self.getScaleWidget)
+            self.extraBox.pack_start(self.getScaleWidget,False,False,0)
             self.extraBox.show_all()
         else:
             self.getScaleWidget.destroy()
@@ -192,6 +195,6 @@ class CurveMenu(Gtk.VBox):
         else:
             self.canvas.draw_idle()
 
-    def on_button_clicked_template(self,widget,f):
+    '''def on_button_clicked_template(self,widget,f):
             f(widget,self.canvas)
-            self.canvas.draw_idle()
+            self.canvas.draw_idle()'''

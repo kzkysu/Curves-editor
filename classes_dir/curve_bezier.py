@@ -1,6 +1,7 @@
 from classes_dir.curve import Curve
 from classes_dir.curve_bezier_menu import BezierCurveMenu
 import math as mth
+import numpy as np
 
 class Bezier(Curve):
     curveType = 'Bezier'
@@ -106,15 +107,15 @@ class Bezier(Curve):
         newCurve.set_numbers()
         newCurve.update_plots_extended()
 
-    def change_degree(self,d):
-        if d > self.numberOfPoints:
-            self.degree_up(d-self.numberOfPoints)
-
     def update_plots_extended(self,flag=None):
         super().update_plots_extended(flag=flag)
-        Bezier.extraMenu.set_entry_text(str(self.numberOfPoints))
+        Bezier.extraMenu.set_entryDegree_text(str(self.numberOfPoints))
 
     def degree_up(self,d):
+        if d <= self.numberOfPoints:
+            return
+        else:
+            d = d - self.numberOfPoints
         xs = []
         ys = []
 
@@ -151,3 +152,83 @@ class Bezier(Curve):
         self.points[1] = ys
         self.set_numbers()
         self.update_plots_extended()
+
+    @staticmethod
+    def operator_delta(r,cs,i):
+        dc = 0
+        nr = 1
+        for j in range(r):
+            dc += nr * (-1)**j * cs[i+r-j]
+            nr *= (r-j)/(j+1)
+        return dc
+
+    @staticmethod
+    def newt(n,k):
+        return mth.factorial(n)/mth.factorial(k)/mth.factorial(n-k)
+
+    def degree_down(self,d,k,l):
+        if d >= self.numberOfPoints or k+l > self.numberOfPoints:
+            print("Wrong arguments for degree down.")
+            return
+        else:
+            d = d - self.numberOfPoints
+        xs = []
+        ys = []
+        p1 = self.points[0]
+        p2 = self.points[1]
+
+        n = self.numberOfPoints-1
+        m = n-d
+        self.numberOfPoints += d 
+
+        r1 = np.zeros(m+1)
+        r2 = np.zeros(m+1)
+        r1t = np.zeros(m+1)
+        r2t = np.zeros(m+1)
+
+        nn = 1
+        nm = 1
+        nh = 1
+        for i in range(k):
+            r1sum = 0
+            r2sum = 0
+            r1sumt = 0
+            r2sumt = 0
+
+            for h in range(i):
+                r1sum += (-1)**(i+h)*nh*r1[h]
+                r2sum += (-1)**(i+h)*nh*r2[h]
+                r1sumt += (-1)**(i+h)*Bezier.newt(i,h)*r1t[h]
+                r2sumt += (-1)**(i+h)*Bezier.newt(i,h)*r2t[h]
+                nh *= (i-h)/(h+1)
+
+            r1[i]= nn/nm * Bezier.operator_delta(i,p1,0) - r1sum
+            r2[i]= nn/nm * Bezier.operator_delta(i,p2,0) - r2sum
+            r1t[i]= Bezier.newt(n,i)/Bezier.newt(m,i) * Bezier.operator_delta(i,p1,0) - r1sumt
+            r2t[i]= Bezier.newt(n,i)/Bezier.newt(m,i) * Bezier.operator_delta(i,p2,0) - r2sumt
+            nn *= (n-i)/(i+1)
+            nm *= (m-i)/(i+1)
+
+        nn = 1
+        nm = 1
+        nh = 1
+        for i in range(l):
+            r1sum = 0
+            r2sum = 0
+            for h in range(i):
+                r1sum += (-1)**i*nh*r1[m-i+h]
+                r2sum += (-1)**i*nh*r2[m-i+h]
+                nh *= (i-h)/(h+1)
+
+            r1[m-i]= (-1)**i * nn/nm * Bezier.operator_delta(i,p1,n-i) - r1sum
+            r2[m-i]= (-1)**i * nn/nm * Bezier.operator_delta(i,p2,n-i) - r2sum
+            nn *= (n-i)/(i+1)
+            nm *= (m-i)/(i+1)
+
+        print(r1,r1t)
+
+        
+        '''self.points[0] = xs
+        self.points[1] = ys
+        self.set_numbers()
+        self.update_plots_extended()'''

@@ -68,6 +68,7 @@ class MainWindow(Gtk.ApplicationWindow):
         addCurveBox.pack_start(self.chooseTypeComboBox,False,False,0)
 
         self.animationBox = Gtk.Box()
+
         mainOptionsHBox.pack_start(self.animationBox,False,False,0)
 
         self.animationButton = Gtk.ToggleButton(label="Animation mode")
@@ -77,10 +78,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.animationEntry = Gtk.Entry()
         self.animationEntry.connect("activate",lambda widget: self.animationButton.set_active(True))
         self.animationBox.pack_start(self.animationEntry,False,False,0)
+        
         self.connect("key-press-event",self.make_frame_by_space)
 
         self.extraBox = Gtk.Box()
-        mainOptionsHBox.pack_start(self.extraBox,False,False,0)
+        #mainOptionsHBox.pack_start(self.extraBox,False,False,0)
+        self.editorGrid.attach(self.extraBox,1,2,1,2)
 
         self.emptyHBox = Gtk.HBox()
         self.editorGrid.attach(self.emptyHBox,0,2,1,4)
@@ -104,7 +107,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.canvas = self.appCanvas.get_canvas()
         sw.add(self.canvas)
 
-        self.editCurveMenu = CurveMenu(self.appCanvas,self.activeCurve,self.curves,self.activeToggleButton,self.emptyHBox)
+        self.editCurveMenu = CurveMenu(self.appCanvas,self.activeCurve,self.curves,self.activeToggleButton,self.extraBox)
         self.editorGrid.attach(self.editCurveMenu,0,2,1,2)
 
         self.editCurveMenu.basicMenu.selectCurveButton.connect("toggled", self.on_select_curve_button_toggled)

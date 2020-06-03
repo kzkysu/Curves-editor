@@ -7,6 +7,7 @@ class Curve:
     counter = 0
     curveType = None
     extraMenu = None
+    extraPointsMenu = None
     def __init__(self,linePlot,pointsPlot,convexHull):
         self.name = "Curve " + str(Curve.counter)
         self.accurancy = 10000

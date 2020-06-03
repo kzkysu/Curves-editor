@@ -27,7 +27,7 @@ class PointsVBox(Gtk.VBox):
         self.pack_start(self.movePointButton,False,False,0)
 
 
-class PointsMenu(Gtk.HBox):
+class PointsMenu(Gtk.VBox):
     def __init__(self,appCanvas,activeCurve,curves,activeToggleButton):
         super().__init__()
 
@@ -37,9 +37,10 @@ class PointsMenu(Gtk.HBox):
         self.curves = curves
 
         self.activeToggleButton = activeToggleButton
+        self.extraMenu = None
 
         self.basicMenu = PointsVBox()
-        self.add(self.basicMenu)
+        self.pack_start(self.basicMenu,False,False,0)
 
         self.basicMenu.addPointButton.connect("toggled", self.on_add_point_button_toggled)
         self.basicMenu.deletePointButton.connect("toggled", self.on_delete_point_button_toggled)
@@ -47,6 +48,16 @@ class PointsMenu(Gtk.HBox):
 
     def update_active_curve(self,activeCurve):
         self.activeCurve = activeCurve
+        if self.extraMenu != None:
+            self.remove(self.extraMenu)
+            self.extraMenu = None
+
+        if activeCurve != None and activeCurve.__class__.extraPointsMenu != None:
+            self.extraMenu = activeCurve.__class__.extraPointsMenu
+            self.extraMenu.activate(activeCurve,self.canvas,self.set_active_widget)
+            self.pack_start(self.extraMenu,False,False,0)
+
+        self.show_all()
 
     def destroy_menu(self):
         self.basicMenu.addPointButton.set_active(False)
