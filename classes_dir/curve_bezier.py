@@ -120,6 +120,9 @@ class Bezier(Curve):
             ys1.append(w2[i][0])
             ys2.append(w2[i][-1])
 
+        xs2.reverse()
+        ys2.reverse()
+
         self.split_curve(newCurve,xs1,ys1,xs2,ys2)
 
     def split_curve(self,newCurve,xs1,ys1,xs2,ys2):

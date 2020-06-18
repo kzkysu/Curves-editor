@@ -54,10 +54,12 @@ class Curve:
             self.points[0] =  data['pointsxs']
             self.points[1] =  data['pointsys']
             self.numberOfPoints = len(self.points[0])
-            self.color = data['color']
-            self.linePlot.set_color(self.color)
-            self.width = data['width']
-            self.linePlot.set_linewidth(self.width)
+            if data['color'] != None:
+                self.color = data['color']
+                self.linePlot.set_color(self.color)
+            if data['width'] != None:
+                self.width = data['width']
+                self.linePlot.set_linewidth(self.width)
             self.set_numbers()
             self.update_plots_extended()
         except:
