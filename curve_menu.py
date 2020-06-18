@@ -25,6 +25,8 @@ class CurveHBox(Gtk.HBox):
         image7.set_from_file('data/choose_color2.png')
         image8 = Gtk.Image()
         image8.set_from_file('data/choose_width.png')
+        image9 = Gtk.Image()
+        image9.set_from_file('data/join_curve.png')
 
         self.selectCurveButton = Gtk.ToggleButton()
         self.selectCurveButton.set_image(image1)
@@ -45,6 +47,10 @@ class CurveHBox(Gtk.HBox):
         self.splitCurveButton = Gtk.ToggleButton()
         self.splitCurveButton.set_image(image5)
         self.pack_start(self.splitCurveButton,False,False,0)
+
+        self.joinCurveButton = Gtk.ToggleButton()
+        self.joinCurveButton.set_image(image9)
+        self.pack_start(self.joinCurveButton,False,False,0)
 
         self.deleteCurveButton = Gtk.Button()
         self.deleteCurveButton.set_image(image6)
@@ -170,11 +176,13 @@ class CurveMenu(Gtk.VBox):
             self.canvas.draw_idle()
 
     def on_choose_color_button_clicked(self,widget):
-        colorChooserDialog = Gtk.ColorChooserDialog()
-        stat = colorChooserDialog.run()
-        col = colorChooserDialog.get_rgba()
-        self.activeCurve.change_line_color(col.red,col.green,col.blue)
-        colorChooserDialog.destroy()
+        if self.activeCurve != None:
+            colorChooserDialog = Gtk.ColorChooserDialog()
+            stat = colorChooserDialog.run()
+            if stat > -6:
+                col = colorChooserDialog.get_rgba()
+                self.activeCurve.change_line_color(col.red,col.green,col.blue)
+            colorChooserDialog.destroy()
 
     def on_change_width_button_toggled(self,widget):
         if widget.get_active() == True:

@@ -112,6 +112,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.editCurveMenu.basicMenu.selectCurveButton.connect("toggled", self.on_select_curve_button_toggled)
         self.editCurveMenu.basicMenu.splitCurveButton.connect("toggled", self.on_split_curve_button_toggled)
+        self.editCurveMenu.basicMenu.joinCurveButton.connect("toggled", self.on_join_curve_button_toggled)
         self.editCurveMenu.basicMenu.deleteCurveButton.connect("clicked", self.delete_curve)
 
         self.pointsMenu = PointsMenu(self.appCanvas,self.activeCurve,self.curves,self.activeToggleButton)
@@ -147,30 +148,44 @@ class MainWindow(Gtk.ApplicationWindow):
             self.set_active_curve()
 
     def set_active_curve(self):
-        self.activeCurve = self.activeCurveWidget.get_curve()
-        self.chooseTypeComboBox.set_current_type(self.activeCurve.curveType)
+        if self.activeCurveWidget != None:
+            self.activeCurve = self.activeCurveWidget.get_curve()
+            self.chooseTypeComboBox.set_current_type(self.activeCurve.curveType)
 
-        if self.pointsVisible:
-            self.activeCurve.show_points()
-        else:
-            self.activeCurve.hide_points()
-        if self.numbersVisible:
-            self.activeCurve.show_numbers()
-        else:
-            self.activeCurve.hide_numbers()
-        
-        self.appCanvas.set_activeCurve(self.activeCurve)
+            if self.pointsVisible:
+                self.activeCurve.show_points()
+            else:
+                self.activeCurve.hide_points()
+            if self.numbersVisible:
+                self.activeCurve.show_numbers()
+            else:
+                self.activeCurve.hide_numbers()
+            
+            self.appCanvas.set_activeCurve(self.activeCurve)
 
-        if self.editCurveMenu != None:
             self.editCurveMenu.update_active_curve(self.activeCurve)
-        self.pointsMenu.update_active_curve(self.activeCurve)
-        
+            self.pointsMenu.update_active_curve(self.activeCurve)
+        else:
+            self.activeCurve = None
+            self.appCanvas.set_activeCurve(None)
+
+            if self.editCurveMenu != None:
+                self.editCurveMenu.update_active_curve(None)
+            self.pointsMenu.update_active_curve(None)
+
     def on_select_curve_button_toggled(self,widget):
         if widget.get_active() == True:
             self.set_active_widget(widget)
             self.select_curve_active = self.canvas.mpl_connect('pick_event', self.select_curve)
         else:
             self.canvas.mpl_disconnect(self.select_curve_active)
+
+    def on_join_curve_button_toggled(self,widget):
+        if widget.get_active() == True:
+            self.set_active_widget(widget)
+            self.join_curve_active = self.canvas.mpl_connect('pick_event', self.join_curve)
+        else:
+            self.canvas.mpl_disconnect(self.join_curve_active)
         
     def on_split_curve_button_toggled(self,widget):
         if widget.get_active() == True:
@@ -207,13 +222,24 @@ class MainWindow(Gtk.ApplicationWindow):
     def delete_curve(self,event):
         if self.activeCurve != None:
             self.curves[self.activeCurve.get_points_label()] = None
+            self.curves[self.activeCurve.linePlot.get_label()] = None
             self.activeCurve.delete_curve()
             self.activeCurveWidget.destroy()
-            self.activeCurve = None
-            self.appCanvas.set_activeCurve(self.activeCurve)
             self.activeCurveWidget = None
+            self.activeCurve = None
+            self.set_active_curve()
 
             self.canvas.draw_idle()
+
+    def delete_non_active_curve(self,lineName):
+       toDeleteWidget = self.curves[lineName]
+       toDeleteCurve = toDeleteWidget.get_curve()
+       self.curves[lineName] = None
+       self.curves[toDeleteCurve.get_points_label()] = None
+       toDeleteCurve.delete_curve()
+       toDeleteWidget.destroy()
+
+       self.canvas.draw_idle()
 
     def split_curve(self,event):
         lineName = event.artist.get_label()
@@ -222,6 +248,14 @@ class MainWindow(Gtk.ApplicationWindow):
             self.add_curve(self.curveTypes[self.activeCurve.curveType])
             oldCurve.calculate_split(event.mouseevent.xdata,event.mouseevent.ydata,self.activeCurve)
             self.canvas.draw_idle()
+
+    def join_curve(self,event):
+        lineName = event.artist.get_label()
+        if self.activeCurve != None and lineName != self.activeCurve.linePlot.get_label() and 'line' in lineName and self.activeCurve.__class__ == self.curves[lineName].get_curve().__class__:
+            self.activeCurve.join_curve(self.curves[lineName].get_curve())
+            #self.delete_non_active_curve(lineName)
+        self.canvas.draw_idle()
+
 
     def save_active_curve(self,path):
         if self.activeCurve != None:
@@ -237,7 +271,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def save_fig_to_png(self,path):
         plt.axis('off')
-        plt.savefig(path,format='png')
+        plt.savefig(path,format='png',bbox_inches='tight',pad_inches=0)
         plt.axis('on')
 
     def change_curve_type(self,widget):
@@ -295,7 +329,6 @@ class MainWindow(Gtk.ApplicationWindow):
             frameName = self.animationEntry.get_text()
             if frameName == '':
                 frameName = str(datetime.now())
-                print(frameName)
             path = os.getcwd() + "/animation/" + frameName 
             try:
                 os.mkdir(path)
@@ -306,7 +339,15 @@ class MainWindow(Gtk.ApplicationWindow):
                 print("Error during creating animation directory")
 
         else:
-            if self.animationModeBox != AnimationModeBox:
+            if self.animationModeBox != None:
                 self.animationModeBox.destroy()
                 self.animationModeBox = None
                 self.animationBox.show_all()
+
+    def set_background_image(self,path):
+        try:
+            image = plt.imread(path)
+            self.ax.imshow(image)
+            self.canvas.draw_idle()
+        except:
+            print("Error during seting background image")

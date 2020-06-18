@@ -25,7 +25,7 @@ class BezierCurveMenu(ExtraMenu):
         self.degreeUpButton.set_image(image1)
         self.pack_start(self.degreeUpButton,False,False,0)
 
-        self.entryK = Gtk.Entry()
+        '''self.entryK = Gtk.Entry()
         self.entryK.set_max_length(2)
         self.entryK.set_width_chars(3)
         self.entryK.set_text('0')
@@ -35,7 +35,7 @@ class BezierCurveMenu(ExtraMenu):
         self.entryL.set_max_length(2)
         self.entryL.set_width_chars(3)
         self.entryL.set_text('0')
-        self.pack_start(self.entryL,False,False,0)
+        self.pack_start(self.entryL,False,False,0)'''
 
         self.degreeDownButton = Gtk.Button()
         self.degreeDownButton.set_image(image2)
@@ -73,9 +73,10 @@ class BezierCurveMenu(ExtraMenu):
         if self.activeCurve != None:
             try:
                 d = int(self.get_entryDegree_text())
-                k = int(self.get_entryK_text())
-                l = int(self.get_entryL_text())
-                self.activeCurve.degree_down(d,k,l)
+                #k = int(self.get_entryK_text())
+                #l = int(self.get_entryL_text())
+                #self.activeCurve.degree_down(d,k,l)
+                self.activeCurve.degree_down(d)
                 self.canvas.draw_idle()
             except:
                 return    

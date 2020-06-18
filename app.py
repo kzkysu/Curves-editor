@@ -32,6 +32,8 @@ class App(Gtk.Application):
         self.add_gio_action('hidenumbers',self.on_hidenumbers_clicked)
         self.add_gio_action('showhull',self.on_showhull_clicked)
         self.add_gio_action('hidehull',self.on_hidehull_clicked)
+        '''self.add_gio_action('setbackground',self.load_background)
+        self.add_gio_action('setwhitebackground',self.set_white_background)'''
 
         '''hidePointsAction = Gio.SimpleAction.new_stateful("hidepoints", None,
                                            GLib.Variant.new_boolean(False))
@@ -94,6 +96,29 @@ class App(Gtk.Application):
             self.window.load_curve(path)
             
         dialog.destroy()
+
+    def load_background(self,action,userData):
+        dialog = Gtk.FileChooserDialog(title="Please choose a background image", parent=self.window,
+            action=Gtk.FileChooserAction.OPEN)
+        dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+
+        dialog.set_current_folder(os.getcwd() + "/data")
+
+        fileFilter = Gtk.FileFilter()
+        fileFilter.add_pattern("*.png")
+        dialog.add_filter(fileFilter)
+
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            path = dialog.get_filename()
+            self.window.set_background_image(path)
+            
+        dialog.destroy()
+
+    def set_white_background(self,action,userData):
+        path = os.getcwd() + "/data/white_background.png"
+        self.window.set_background_image(path)
 
     def export_to_png(self,action,userData):
         dialog = Gtk.FileChooserDialog(title="Please choose a file", parent=self.window,

@@ -22,8 +22,8 @@ class Curve:
         self.points = [list(),list()]
         self.numberOfPoints = 0
         self.activePoint = None
-        self.color = None
-        self.width = None
+        self.color = self.linePlot.get_color()
+        self.width = self.linePlot.get_linewidth()
         self.pointsVisible = True
         self.numbersVisible = False
         self.hullVisible = False
@@ -55,7 +55,9 @@ class Curve:
             self.points[1] =  data['pointsys']
             self.numberOfPoints = len(self.points[0])
             self.color = data['color']
+            self.linePlot.set_color(self.color)
             self.width = data['width']
+            self.linePlot.set_linewidth(self.width)
             self.set_numbers()
             self.update_plots_extended()
         except:
@@ -215,7 +217,7 @@ class Curve:
             self.texts[-1].remove()
             del self.texts[-1]
         for i in range(self.numberOfPoints):
-            self.texts.append(plt.text(self.points[0][i],self.points[1][i],i.__str__()))
+            self.texts.append(plt.text(self.points[0][i],self.points[1][i],(i+1).__str__()))
             self.texts[i].set_visible(self.numbersVisible)
 
 
@@ -242,6 +244,9 @@ class Curve:
         newCurve.update_numbers(1)
         newCurve.update_plots_extended()
 
+    def join_curve(self,toJoin):
+        print("This option is not available for this curves class.")
+
 
     def find_point(self,x,y,xs,ys):
         minDistance = 100000000000000
@@ -261,9 +266,10 @@ class Curve:
         del self.linePlot
         self.pointsPlot.remove()
         del self.pointsPlot
+        self.convexHull.remove()
+        del self.convexHull
 
-    def save_to_file(self,path):
-        data = {}
+    def save_to_file(self,path,data={}):
         data['name'] = self.name
         data['width'] = self.width
         data['type'] = self.curveType
@@ -303,7 +309,7 @@ class Curve:
     def show_curve(self):
         self.pointsPlot.set_visible(self.pointsVisible)
         self.linePlot.set_visible(True)
-        self.convexHull.set_visible(True)
+        self.convexHull.set_visible(self.hullVisible)
         if self.numbersVisible:
             self.show_numbers(force=True)
         self.visible = True
@@ -400,8 +406,10 @@ class Curve:
 
     def change_line_color(self,r,g,b):
         color = matplotlib.colors.to_hex((r,g,b))
+        self.color = color
         self.linePlot.set_color(color)
 
     def change_line_width(self,scale):
         width = self.linePlot.get_linewidth()
+        self.width = width*scale
         self.linePlot.set_linewidth(width*scale)

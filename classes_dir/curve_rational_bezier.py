@@ -24,7 +24,12 @@ class RationalBezier(Curve):
             w.append([])
             g.append([])
             for i in range(n-k-1):
-                g[k+1].append( (1-t)*g[k][i] + t*g[k][i+1] )
+                #print(t,g[k][i])
+                g[k+1].append( 
+                    (1-t)
+                    *g[k][i]
+                     + t
+                     *g[k][i+1] )
                 w[k+1].append( (1-t)*g[k][i]/g[k+1][i]*w[k][i] + t*g[k][i+1]/g[k+1][i]*w[k][i+1] )
         return w,g
 
@@ -86,10 +91,50 @@ class RationalBezier(Curve):
                 self.wgs[1].append(ags)
 
     def calculate_split(self,x,y,newCurve):
-        pass
+        n = len(self.points[0])
+        xs1 = []
+        ys1 = []
+        wg1 = []
+        xs2 = []
+        ys2 = []
+        wg2 = []
 
-    def split_curve(self,newCurve,xs1,ys1,xs2,ys2,x,y):
-        pass
+        np = self.find_point(x,y,self.linePlot.get_xdata(),self.linePlot.get_ydata())
+        numberOfPoints = self.currentAccurancy
+
+        w1,wgs1 = self.de_Casteljou(self.points[0],self.wg,np/(numberOfPoints-1))
+        w2,wgs2 = self.de_Casteljou(self.points[1],self.wg,np/(numberOfPoints-1))
+
+        for i in range(n):
+            xs1.append(w1[i][0])
+            xs2.append(w1[i][-1])
+            ys1.append(w2[i][0])
+            ys2.append(w2[i][-1])
+            wg1.append(wgs1[i][0])
+            wg2.append(wgs2[i][-1])
+
+
+        self.split_curve(newCurve,xs1,ys1,wg1,xs2,ys2,wg2,x,y)
+
+    def split_curve(self,newCurve,xs1,ys1,wg1,xs2,ys2,wg2,x,y):
+        n = len(xs1)-1
+
+        self.points[0] = xs1
+        self.points[1] = ys1
+        self.wg = wg1
+        self.numberOfPoints = len(xs1)
+
+        self.set_numbers()
+        self.update_plots_extended()
+
+        self.paste_curve_settings(newCurve)
+        newCurve.points[0] = xs2
+        newCurve.points[1] = ys2
+        newCurve.wg = wg2
+        newCurve.numberOfPoints = len(xs2)
+
+        newCurve.set_numbers()
+        newCurve.update_plots_extended()
 
     def change_weight(self,wgh):
         if self.activePoint != None:
@@ -102,3 +147,14 @@ class RationalBezier(Curve):
     def set_weight(self,i,x):
         self.wg[i] = x
         self.update_plots_extended()
+
+    def save_to_file(self,path,data={}):
+        data['weights'] = self.wg
+        super().save_to_file(path,data=data)
+
+    def set_curve_data(self,data):
+        try:
+            self.wg = data['weights']
+            super().set_curve_data(data)
+        except:
+            print("The data from file is not valid.")

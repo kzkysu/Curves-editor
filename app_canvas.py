@@ -45,7 +45,7 @@ class AppCanvas():
             self.drop_curve_active = self.canvas.mpl_connect('button_release_event', self.drop_curve)
             self.mouseX = event.mouseevent.xdata
             self.mouseY = event.mouseevent.ydata
-            self.activeCurve.set_working_accurancy()
+            #self.activeCurve.set_working_accurancy()
 
     def drop_curve(self,event):
         if self.drag_curve_active != None:
@@ -53,7 +53,7 @@ class AppCanvas():
                 self.activeCurve.move_curve(event.xdata-self.mouseX,event.ydata-self.mouseY)
             self.canvas.mpl_disconnect(self.drag_curve_active)
             self.canvas.mpl_disconnect(self.drop_curve_active)
-            self.activeCurve.set_normal_accurancy()
+            #self.activeCurve.set_normal_accurancy()
             self.canvas.draw_idle()
             self.drag_curve_active = None
             self.drop_curve_active = None

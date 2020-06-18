@@ -61,14 +61,25 @@
         <attribute name="action">app.hidenumbers</attribute>
         <attribute name="label" translatable="yes">Hide numbers</attribute>
       </item>
-            <item>
+      <item>
         <attribute name="action">app.showhull</attribute>
-        <attribute name="label" translatable="yes">Show convex hull.</attribute>
+        <attribute name="label" translatable="yes">Show convex hull</attribute>
       </item>
-            <item>
+      <item>
         <attribute name="action">app.hidehull</attribute>
-        <attribute name="label" translatable="yes">Hide convex hull.</attribute>
+        <attribute name="label" translatable="yes">Hide convex hull</attribute>
       </item>
  </submenu>
+ <!-- <submenu>
+    <attribute name="label" translatable="yes">Background</attribute>
+      <item>
+        <attribute name="action">app.setbackground</attribute>
+        <attribute name="label" translatable="yes">Set background image</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.setwhitebackground</attribute>
+        <attribute name="label" translatable="yes">Set background white</attribute>
+      </item>
+ </submenu> -->
 </menu>
 </interface>
